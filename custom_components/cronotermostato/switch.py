@@ -31,7 +31,6 @@ async def async_setup_entry(
         CronotermostatoAutoSwitch(manager, entry),
     ]
 
-    # Aggiungi lo switch per la zona notte solo se ci sono climate secondari configurati
     if manager.secondary_climate_entities:
         switches.append(CronotermostatoSecondarySummerSwitch(manager, entry))
 
@@ -44,7 +43,6 @@ class CronotermostatoBaseSwitch(RestoreEntity, SwitchEntity):
     _attr_has_entity_name = True
 
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
-        """Inizializza lo switch."""
         self.manager = manager
         self.entry = entry
         self._attr_device_info = DeviceInfo(
@@ -56,19 +54,19 @@ class CronotermostatoBaseSwitch(RestoreEntity, SwitchEntity):
         )
 
     async def async_added_to_hass(self) -> None:
-        """Registra il listener per aggiornamenti dello stato."""
         await super().async_added_to_hass()
         self.async_on_remove(self.manager.async_add_listener(self.async_write_ha_state))
 
 
 class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
-    """Switch principale per abilitare/disabilitare la programmazione oraria (ex crono_pt)."""
+    """Switch principale per abilitare/disabilitare la programmazione oraria."""
+
+    _attr_translation_key = "crono_master"
+    _attr_icon = "mdi:calendar-clock"
 
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         super().__init__(manager, entry)
-        self._attr_name = "Abilitazione Cronotermostato"
         self._attr_unique_id = f"{entry.entry_id}_switch_crono_master"
-        self._attr_icon = "mdi:calendar-clock"
 
     @property
     def is_on(self) -> bool:
@@ -77,7 +75,6 @@ class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
     async def async_turn_on(self, **kwargs: Any) -> None:
         self.manager.crono_enabled = True
         self.manager._notify_listeners()
-        # Se riattivato, applica subito la fascia corrispondente
         await self.manager._async_apply_current_slot()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -92,13 +89,14 @@ class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
 
 
 class CronotermostatoAutoSwitch(CronotermostatoBaseSwitch):
-    """Switch per la termoregolazione automatica (ex termoregolazioneautopt)."""
+    """Switch per la termoregolazione automatica."""
+
+    _attr_translation_key = "auto"
+    _attr_icon = "mdi:thermostat-auto"
 
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         super().__init__(manager, entry)
-        self._attr_name = "Termoregolazione Automatica"
         self._attr_unique_id = f"{entry.entry_id}_switch_auto"
-        self._attr_icon = "mdi:thermostat-auto"
 
     @property
     def is_on(self) -> bool:
@@ -123,11 +121,12 @@ class CronotermostatoAutoSwitch(CronotermostatoBaseSwitch):
 class CronotermostatoSecondarySummerSwitch(CronotermostatoBaseSwitch):
     """Switch per includere la zona secondaria/notte nel ciclo estivo."""
 
+    _attr_translation_key = "secondary_summer"
+    _attr_icon = "mdi:bed"
+
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         super().__init__(manager, entry)
-        self._attr_name = "Zona Secondaria/Notte Partecipa in Estate"
         self._attr_unique_id = f"{entry.entry_id}_switch_secondary_summer"
-        self._attr_icon = "mdi:bed"
 
     @property
     def is_on(self) -> bool:

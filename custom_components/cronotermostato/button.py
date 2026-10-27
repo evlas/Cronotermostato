@@ -35,13 +35,13 @@ class CronotermostatoApplyButton(ButtonEntity):
     """Pulsante per forzare l'applicazione immediata della fascia oraria corrente."""
 
     _attr_has_entity_name = True
+    _attr_translation_key = "apply_now"
+    _attr_icon = "mdi:play-circle-outline"
 
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         self.manager = manager
         self.entry = entry
-        self._attr_name = "Applica Fascia Corrente"
         self._attr_unique_id = f"{entry.entry_id}_button_apply_now"
-        self._attr_icon = "mdi:play-circle-outline"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=f"Cronotermostato {manager.zone_name}",

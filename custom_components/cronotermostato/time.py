@@ -49,7 +49,7 @@ class CronotermostatoSlotTimeEntity(RestoreEntity, TimeEntity):
         self.manager = manager
         self.entry = entry
         self.slot_index = slot_index
-        self._attr_name = f"Orario Fascia {slot_index}"
+        self._attr_translation_key = f"slot_time_{slot_index}"
         self._attr_unique_id = f"{entry.entry_id}_time_slot_{slot_index}"
         self._attr_icon = "mdi:clock-outline"
         self._attr_device_info = DeviceInfo(

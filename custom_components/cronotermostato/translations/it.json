@@ -37,5 +37,97 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "active_slot": {
+        "name": "Fascia attiva"
+      },
+      "next_slot": {
+        "name": "Prossima fascia"
+      },
+      "zone_status": {
+        "name": "Stato zona",
+        "state": {
+          "active": "Attivo",
+          "crono_disabled": "Crono disabilitato",
+          "auto_disabled": "Termoregolazione disabilitata"
+        }
+      }
+    },
+    "switch": {
+      "crono_master": {
+        "name": "Abilitazione cronotermostato"
+      },
+      "auto": {
+        "name": "Termoregolazione automatica"
+      },
+      "secondary_summer": {
+        "name": "Zona secondaria/notte partecipa in estate"
+      }
+    },
+    "button": {
+      "apply_now": {
+        "name": "Applica fascia corrente"
+      }
+    },
+    "time": {
+      "slot_time_1": { "name": "Orario fascia 1" },
+      "slot_time_2": { "name": "Orario fascia 2" },
+      "slot_time_3": { "name": "Orario fascia 3" },
+      "slot_time_4": { "name": "Orario fascia 4" },
+      "slot_time_5": { "name": "Orario fascia 5" },
+      "slot_time_6": { "name": "Orario fascia 6" },
+      "slot_time_7": { "name": "Orario fascia 7" },
+      "slot_time_8": { "name": "Orario fascia 8" },
+      "slot_time_9": { "name": "Orario fascia 9" },
+      "slot_time_10": { "name": "Orario fascia 10" }
+    },
+    "select": {
+      "slot_preset_1": { "name": "Modalità fascia 1" },
+      "slot_preset_2": { "name": "Modalità fascia 2" },
+      "slot_preset_3": { "name": "Modalità fascia 3" },
+      "slot_preset_4": { "name": "Modalità fascia 4" },
+      "slot_preset_5": { "name": "Modalità fascia 5" },
+      "slot_preset_6": { "name": "Modalità fascia 6" },
+      "slot_preset_7": { "name": "Modalità fascia 7" },
+      "slot_preset_8": { "name": "Modalità fascia 8" },
+      "slot_preset_9": { "name": "Modalità fascia 9" },
+      "slot_preset_10": { "name": "Modalità fascia 10" }
+    }
+  },
+  "services": {
+    "apply_now": {
+      "name": "Applica fascia corrente",
+      "description": "Forza l'applicazione immediata della fascia oraria attualmente attiva per la zona indicata.",
+      "fields": {
+        "zone_id": {
+          "name": "Nome o ID della Zona",
+          "description": "Nome della zona (es. Piano Terra) o entry ID di configurazione."
+        }
+      }
+    },
+    "set_slot": {
+      "name": "Imposta fascia oraria",
+      "description": "Modifica programmaticamente l'orario e/o la modalità (preset) di una specifica fascia oraria.",
+      "fields": {
+        "zone_id": {
+          "name": "Nome o ID della Zona",
+          "description": "Nome della zona (es. Piano Terra)."
+        },
+        "slot_number": {
+          "name": "Numero Fascia",
+          "description": "Numero della fascia da modificare (da 1 a 10)."
+        },
+        "time": {
+          "name": "Orario di Avvio",
+          "description": "Nuovo orario di avvio della fascia (HH:MM:SS o HH:MM)."
+        },
+        "preset": {
+          "name": "Modalità / Preset",
+          "description": "Modalità desiderata (es. comfort, standby, economy, building_protection, NONE)."
+        }
+      }
+    }
   }
 }

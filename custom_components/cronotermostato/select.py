@@ -48,7 +48,7 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
         self.manager = manager
         self.entry = entry
         self.slot_index = slot_index
-        self._attr_name = f"Modalità Fascia {slot_index}"
+        self._attr_translation_key = f"slot_preset_{slot_index}"
         self._attr_unique_id = f"{entry.entry_id}_select_preset_{slot_index}"
         self._attr_icon = "mdi:tune-vertical"
         self._attr_options = DEFAULT_PRESET_OPTIONS

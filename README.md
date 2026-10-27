@@ -1,43 +1,48 @@
-# Cronotermostato Multizona per Home Assistant
+# Multi-Zone Chrono-Thermostat - Home Assistant Integration
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/default)
+[![GitHub Release](https://img.shields.io/github/v/release/evlas/Cronotermostato?color=blue&style=flat-square)](https://github.com/evlas/Cronotermostato/releases)
+[![Hassfest](https://github.com/evlas/Cronotermostato/actions/workflows/hassfest.yml/badge.svg)](https://github.com/evlas/Cronotermostato/actions/workflows/hassfest.yml)
+[![HACS Action](https://github.com/evlas/Cronotermostato/actions/workflows/hacs.yml/badge.svg)](https://github.com/evlas/Cronotermostato/actions/workflows/hacs.yml)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
-[![Author](https://img.shields.io/badge/Author-Vito%20Ammirata%20(@evlas)-orange.svg)](https://github.com/evlas)
 
-**Cronotermostato Multizona** è un'integrazione personalizzata (*Custom Integration*) per **Home Assistant**, nata come evoluzione avanzata del package YAML originale di gestione fasce orarie e preset per termostati HVAC.
+🌐 *English | [Versione in italiano](README.it.md)*
 
-Elimina la necessità di mantenere decine di automazioni e helper YAML complessi, offrendo una configurazione pulita direttamente dall'interfaccia grafica di Home Assistant con supporto completo per **zone termiche multiple e indipendenti**.
+**Multi-Zone Chrono-Thermostat** (*Cronotermostato Multizona*) is a **Home Assistant** custom integration designed as an advanced evolution of the original YAML package for managing time-slot schedules and presets across heating and cooling HVAC systems.
+
+It completely eliminates the need to maintain dozens of repetitive YAML automations and helper entities, offering a clean, native UI configuration with full support for **multiple independent thermal zones**.
 
 ---
 
-## 🚀 Punti di Forza rispetto al vecchio Package YAML
+## 📋 Evolution from the YAML Package
 
-| Caratteristica | Vecchio Package YAML | Nuova Integrazione Multizona |
+| Feature | Legacy YAML Package (`cronotermostato.yaml`) | New Multi-Zone Integration |
 |---|---|---|
-| **Zone Termiche** | Rigide (solo Piano Terra e Seminterrato) | **Illimitate e configurabili da UI** (*Config Flow*) |
-| **Entità Clima** | Hardcoded nel file (`climate.salotto`, ecc.) | **Selezionabili liberamente dal menu a tendina** |
-| **Automazioni nel Registro** | **40 automazioni individuali** (2.180 righe) | **0 automazioni**: motore gestito internamente in Python |
-| **Allineamento all'avvio** | Mancante (attendeva il prossimo orario) | **Automatico**: calcola e applica la fascia attiva all'avvio |
-| **Selettori Orario** | `input_datetime` generici | Piattaforma nativa **`time`** di Home Assistant |
-| **Selettori Modalità** | `input_select` manuali | Piattaforma nativa **`select`** integrata nel dispositivo |
-| **Diagnostica e Stato** | Nessuna indicazione in tempo reale | **Sensori dedicati**: *Fascia Attiva*, *Prossima Fascia*, *Stato* |
-| **Pulsante di Forzatura** | Non presente | **Pulsante nativo**: applica immediatamente la fascia attiva |
+| **Zone Management** | Hardcoded (only Ground Floor `pt` & Basement `psi`) | **Dynamic & unlimited**: configure zones via UI (*Config Flow*) |
+| **Climate Entities** | Hardcoded (`climate.salotto`, `group.climapt`, etc.) | **Selectable from dropdown** for each zone |
+| **Automations Overhead** | **40 individual automations** (2,180 lines) | **0 automations**: internal lightweight Python scheduling engine |
+| **Startup Alignment** | Missing (waited for next scheduled trigger) | **Automatic**: computes and applies active slot on HA startup |
+| **Time Pickers** | Generic `input_datetime` helpers | Native Home Assistant **`time`** platform |
+| **Mode Selectors** | Generic `input_select` helpers | Native Home Assistant **`select`** platform with standard presets |
+| **Diagnostics & State** | None | **Dedicated sensors**: *Active Slot*, *Next Slot*, *Zone Status* |
+| **Multi-Language** | Fixed Italian strings only | **Full localization (EN and IT)** via `translation_key` |
 
 ---
 
-## ⚙️ Logica di Funzionamento
+## ⚙️ Operating Logic
 
-Per ciascuna zona creata (es. *Piano Terra*, *Zona Notte*, *Taverna*):
-1. **Configurazione Flessibile**:
-   - Assegnazione dei termostati principali (`climate.*`).
-   - Assegnazione facoltativa di termostati secondari / zona notte.
-   - Collegamento facoltativo allo switch stagionale (*Estate / Inverno*).
-   - Numero di fasce orarie giornaliere desiderate (da 1 a 10, predefinito: 5).
-2. **Ciclo Stagionale & Zona Notte**:
-   - **Inverno**: il preset programmato viene applicato a **tutti** i termostati (principali + secondari).
-   - **Estate**: se lo switch *Zona Notte Partecipa in Estate* è disabilitato, i termostati secondari non vengono attivati per evitare raffrescamenti indesiderati.
-3. **Preset Supportati**:
-   - `NONE` (fascia disattivata/saltata)
+For each configured thermal zone (e.g. *Ground Floor*, *Night Zone*, *Basement*):
+1. **Guided Setup**:
+   - Assign main climate entities (`climate.*`).
+   - Optionally assign secondary/night climate entities.
+   - Optionally link a seasonal switch (*Summer / Winter*).
+   - Choose the number of daily time slots (1 to 10, default: 5).
+2. **Seasonal Cycle & Night Zone**:
+   - **Winter**: the scheduled preset mode is applied to **all** climate entities in the zone (main + secondary).
+   - **Summer**: if the *Secondary/Night Zone Active in Summer* switch is disabled, secondary thermostats are omitted to avoid unwanted cooling.
+3. **Supported Presets**:
+   - `NONE` (slot disabled/skipped)
    - `comfort`
    - `standby`
    - `economy`
@@ -47,90 +52,112 @@ Per ciascuna zona creata (es. *Piano Terra*, *Zona Notte*, *Taverna*):
 
 ---
 
-## 📦 Installazione
+## 🧩 Entities Created per Zone
 
-### Metodo 1: Manuale
-1. Copia la cartella `custom_components/cronotermostato/` all'interno della cartella `custom_components/` del tuo Home Assistant:
+| Platform | Translation Key | Icon | Description |
+|---|---|---|---|
+| **`switch`** | `crono_master` | `mdi:calendar-clock` | Master enable/disable switch for the chrono-thermostat |
+| **`switch`** | `auto` | `mdi:thermostat-auto` | Automatic temperature control enable switch |
+| **`switch`** | `secondary_summer` | `mdi:bed` | *(Optional)* Secondary/night zone inclusion in summer |
+| **`time`** | `slot_time_1` .. `slot_time_N` | `mdi:clock-outline` | Start time for each configured time slot |
+| **`select`** | `slot_preset_1` .. `slot_preset_N` | `mdi:tune-vertical` | Preset mode assigned to each time slot |
+| **`sensor`** | `active_slot` | `mdi:clock-check-outline` | Currently active time slot |
+| **`sensor`** | `next_slot` | `mdi:clock-fast` | Next scheduled time slot and start time |
+| **`sensor`** | `zone_status` | `mdi:information-outline` | Diagnostic status (`active`, `crono_disabled`, `auto_disabled`) |
+| **`button`** | `apply_now` | `mdi:play-circle-outline` | Button to force immediate application of the current slot |
+
+---
+
+## 📦 Installation
+
+### Method 1: Via HACS (Recommended)
+1. Ensure **HACS** is installed in your Home Assistant.
+2. Go to **HACS** ➡️ **Integrations** ➡️ top right three dots ➡️ **Custom repositories**.
+3. Add the repository URL:
+   ```text
+   https://github.com/evlas/Cronotermostato
+   ```
+4. Select **Integration** as category and click **Add**.
+5. Search for **Cronotermostato Multizona**, click **Download**, and restart Home Assistant.
+
+### Method 2: Manual Installation
+1. Download `cronotermostato.zip` from [Releases](https://github.com/evlas/Cronotermostato/releases) or clone the repository.
+2. Copy the folder `custom_components/cronotermostato/` into your Home Assistant's `custom_components/` directory:
    ```text
    /config/custom_components/cronotermostato/
    ```
-2. Riavvia Home Assistant.
-
-### Metodo 2: Tramite HACS
-1. Apri HACS in Home Assistant.
-2. Vai su **Integrazioni** ➡️ menu in alto a destra ➡️ **Repository personalizzati**.
-3. Inserisci l'URL del repository e seleziona la categoria **Integrazione**.
-4. Clicca su **Scarica** e riavvia Home Assistant.
+3. Restart Home Assistant.
 
 ---
 
-## 🛠️ Configurazione di una Zona
+## 🛠️ Configuring a Zone
 
-1. In Home Assistant, vai su **Impostazioni** ➡️ **Dispositivi e Servizi**.
-2. Clicca su **Aggiungi Integrazione** in basso a destra.
-3. Cerca **Cronotermostato Multizona**.
-4. Compila i campi guidati:
-   - **Nome della Zona**: es. `Piano Terra`.
-   - **Termostati Principali**: seleziona i climate desiderati (es. `climate.salotto`, `climate.cucina`).
-   - **Termostati Secondari (opzionale)**: es. `climate.camera`.
-   - **Switch Estate/Inverno (opzionale)**: es. `switch.inverno_estate`.
-   - **Numero di Fasce Orarie**: es. `5`.
-5. Clicca su **Invia**: il dispositivo con tutte le sue entità verrà creato istantaneamente!
+1. In Home Assistant, navigate to **Settings** ➡️ **Devices & Services**.
+2. Click **Add Integration** in the bottom right corner.
+3. Search for **Cronotermostato Multizona**.
+4. Fill in the guided setup fields:
+   - **Zone Name**: e.g. `Ground Floor`.
+   - **Main Thermostats**: select the zone's `climate.*` entities.
+   - **Secondary Thermostats (optional)**: e.g. bedroom thermostats.
+   - **Summer/Winter Switch (optional)**: e.g. `switch.inverno_estate`.
+   - **Invert season switch logic**: leave disabled if `ON = Winter` and `OFF = Summer`.
+   - **Number of Daily Time Slots**: e.g. `5`.
+5. Click **Submit**: the device with all its entities is generated instantly!
 
 > [!TIP]
-> Puoi modificare i termostati o le impostazioni in qualsiasi momento cliccando su **Configura** nella scheda dell'integrazione, senza perdere le fasce orarie impostate.
+> You can reconfigure entities or settings at any time by clicking **Configure** on the integration card without losing your programmed schedules.
 
 ---
 
-## 📱 Esempio di Dashboard Lovelace
+## 📱 Lovelace Dashboard Example
 
-Nella cartella del progetto trovi il file [`lovelace_example.yaml`](lovelace_example.yaml) pronto da incollare nella tua dashboard:
+The file [`lovelace_example.yaml`](lovelace_example.yaml) is ready to copy into your dashboard:
 
 ```yaml
 type: entities
-title: 🌡️ Cronotermostato Piano Terra
+title: 🌡️ Ground Floor Chrono-Thermostat
 entities:
-  - entity: switch.cronotermostato_piano_terra_abilitazione_cronotermostato
-  - entity: switch.cronotermostato_piano_terra_termoregolazione_automatica
-  - entity: sensor.cronotermostato_piano_terra_fascia_attiva
-  - entity: sensor.cronotermostato_piano_terra_prossima_fascia
-  - entity: button.cronotermostato_piano_terra_applica_fascia_corrente
+  - entity: switch.cronotermostato_ground_floor_chrono_thermostat_enable
+  - entity: switch.cronotermostato_ground_floor_automatic_temperature_control
+  - entity: sensor.cronotermostato_ground_floor_active_slot
+  - entity: sensor.cronotermostato_ground_floor_next_slot
+  - entity: button.cronotermostato_ground_floor_apply_current_slot
   - type: divider
-  - entity: time.cronotermostato_piano_terra_orario_fascia_1
-  - entity: select.cronotermostato_piano_terra_modalita_fascia_1
-  - entity: time.cronotermostato_piano_terra_orario_fascia_2
-  - entity: select.cronotermostato_piano_terra_modalita_fascia_2
-  - entity: time.cronotermostato_piano_terra_orario_fascia_3
-  - entity: select.cronotermostato_piano_terra_modalita_fascia_3
+  - entity: time.cronotermostato_ground_floor_slot_1_time
+  - entity: select.cronotermostato_ground_floor_slot_1_mode
+  - entity: time.cronotermostato_ground_floor_slot_2_time
+  - entity: select.cronotermostato_ground_floor_slot_2_mode
+  - entity: time.cronotermostato_ground_floor_slot_3_time
+  - entity: select.cronotermostato_ground_floor_slot_3_mode
 ```
 
 ---
 
-## ⚡ Servizi Disponibili
+## ⚡ Custom Services
 
-L'integrazione registra due servizi utilizzabili in script o automazioni:
+The integration exposes two services for use in automations or scripts:
 
 ### 1. `cronotermostato.apply_now`
-Forza l'applicazione della fascia attualmente in corso.
+Forces immediate application of the currently active time slot for the specified zone.
 ```yaml
 action: cronotermostato.apply_now
 data:
-  zone_id: "Piano Terra"
+  zone_id: "Ground Floor"
 ```
 
 ### 2. `cronotermostato.set_slot`
-Modifica l'orario o il preset di una specifica fascia oraria.
+Programmatically update the start time and/or preset mode for a specific time slot.
 ```yaml
 action: cronotermostato.set_slot
 data:
-  zone_id: "Piano Terra"
+  zone_id: "Ground Floor"
   slot_number: 1
-  time: "06:45:00"
+  time: "06:30:00"
   preset: "comfort"
 ```
 
 ---
 
-## 📄 Licenza
-Progetto rilasciato con licenza open source GPL-3.0.
-Autore: **Vito Ammirata** ([@evlas](https://github.com/evlas)).
+## 📄 License
+Released under the **GPL-3.0** open-source license.  
+Author: **Vito Ammirata** ([@evlas](https://github.com/evlas)).

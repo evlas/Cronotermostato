@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -16,6 +16,10 @@ from .const import DOMAIN
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
+
+STATUS_ACTIVE = "active"
+STATUS_CRONO_DISABLED = "crono_disabled"
+STATUS_AUTO_DISABLED = "auto_disabled"
 
 
 async def async_setup_entry(
@@ -59,83 +63,88 @@ class CronotermostatoBaseSensor(SensorEntity):
 class CronotermostatoActiveSlotSensor(CronotermostatoBaseSensor):
     """Sensore che indica la fascia oraria attualmente in esecuzione."""
 
+    _attr_translation_key = "active_slot"
+    _attr_icon = "mdi:clock-check-outline"
+
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         super().__init__(manager, entry)
-        self._attr_name = "Fascia Attiva"
         self._attr_unique_id = f"{entry.entry_id}_sensor_active_slot"
-        self._attr_icon = "mdi:clock-check-outline"
 
     @property
     def native_value(self) -> str:
         if self.manager.active_slot is None:
-            return "Nessuna"
-        return f"Fascia {self.manager.active_slot} ({self.manager.last_applied_preset})"
+            return "none"
+        return f"Slot {self.manager.active_slot} ({self.manager.last_applied_preset})"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
             "slot_index": self.manager.active_slot,
-            "preset_applicato": self.manager.last_applied_preset,
-            "ultimo_aggiornamento": (
+            "applied_preset": self.manager.last_applied_preset,
+            "last_applied": (
                 self.manager.last_applied_time.strftime("%d/%m/%Y %H:%M:%S")
                 if self.manager.last_applied_time
                 else None
             ),
-            "clima_attualmente_comandati": self.manager.get_target_climates(),
-            "stagione": "Inverno" if self.manager.is_winter() else "Estate",
+            "controlled_climates": self.manager.get_target_climates(),
+            "season": "winter" if self.manager.is_winter() else "summer",
         }
 
 
 class CronotermostatoNextSlotSensor(CronotermostatoBaseSensor):
     """Sensore che indica la prossima fascia programmata in arrivo."""
 
+    _attr_translation_key = "next_slot"
+    _attr_icon = "mdi:clock-fast"
+
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         super().__init__(manager, entry)
-        self._attr_name = "Prossima Fascia"
         self._attr_unique_id = f"{entry.entry_id}_sensor_next_slot"
-        self._attr_icon = "mdi:clock-fast"
 
     @property
     def native_value(self) -> str:
         idx, t, preset = self.manager.get_next_slot_info()
         if idx is None or t is None:
-            return "Nessuna"
-        return f"Fascia {idx} alle {t.strftime('%H:%M')} ({preset})"
+            return "none"
+        return f"Slot {idx} @ {t.strftime('%H:%M')} ({preset})"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         idx, t, preset = self.manager.get_next_slot_info()
         return {
-            "prossimo_slot_index": idx,
-            "prossimo_orario": t.strftime("%H:%M") if t else None,
-            "prossimo_preset": preset,
+            "next_slot_index": idx,
+            "next_time": t.strftime("%H:%M") if t else None,
+            "next_preset": preset,
         }
 
 
 class CronotermostatoStatusSensor(CronotermostatoBaseSensor):
     """Sensore diagnostico sullo stato globale della zona."""
 
+    _attr_translation_key = "zone_status"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [STATUS_ACTIVE, STATUS_CRONO_DISABLED, STATUS_AUTO_DISABLED]
+    _attr_icon = "mdi:information-outline"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         super().__init__(manager, entry)
-        self._attr_name = "Stato Zona"
         self._attr_unique_id = f"{entry.entry_id}_sensor_status"
-        self._attr_icon = "mdi:information-outline"
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def native_value(self) -> str:
         if not self.manager.crono_enabled:
-            return "Crono Disabilitato"
+            return STATUS_CRONO_DISABLED
         if not self.manager.auto_enabled:
-            return "Termoregolazione Off"
-        return "Attivo"
+            return STATUS_AUTO_DISABLED
+        return STATUS_ACTIVE
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
-            "ultimo_messaggio": self.manager.last_action_message,
-            "inverno_attivo": self.manager.is_winter(),
-            "entita_principali": self.manager.climate_entities,
-            "entita_secondarie": self.manager.secondary_climate_entities,
-            "numero_fasce": self.manager.slots_count,
+            "last_message": self.manager.last_action_message,
+            "is_winter": self.manager.is_winter(),
+            "main_climates": self.manager.climate_entities,
+            "secondary_climates": self.manager.secondary_climate_entities,
+            "slots_count": self.manager.slots_count,
         }

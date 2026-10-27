@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Python and JSON Files
+        run: |
+          python3 -m py_compile custom_components/cronotermostato/*.py
+          python3 -c "import json; [json.load(open(f)) for f in ['hacs.json', 'custom_components/cronotermostato/manifest.json', 'custom_components/cronotermostato/strings.json', 'custom_components/cronotermostato/translations/en.json', 'custom_components/cronotermostato/translations/it.json']]"
+
+      - name: Generate Changelog from Commits
+        run: |
+          git fetch --tags --force 2>/dev/null || true
+          TAG_NAME="${{ github.ref_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+
+          echo "Generazione Changelog per: $TAG_NAME"
+          PREV_TAG=$(git describe --tags --abbrev=0 "${TAG_NAME}^" 2>/dev/null || true)
+          TAG_MSG=$(git tag -l --format='%(contents)' "$TAG_NAME" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+          {
+            if [ -n "$TAG_MSG" ]; then
+              echo "### Note di rilascio"
+              echo "$TAG_MSG"
+              echo ""
+            fi
+
+            echo "### Modifiche"
+            if [ -n "$PREV_TAG" ]; then
+              echo "_Modifiche rispetto a \`$PREV_TAG\`:_"
+              echo ""
+              git log --no-merges --pretty=format:"- %s (%h)" "$PREV_TAG..$TAG_NAME"
+            else
+              echo "_Primo rilascio:_"
+              echo ""
+              git log --no-merges --pretty=format:"- %s (%h)" "$TAG_NAME"
+            fi
+            echo ""
+          } > CHANGELOG.md
+
+          cat CHANGELOG.md
+
+      - name: Update manifest version from tag
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [ -z "$TAG" ]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#v}"
+          python3 -c "import json; p='custom_components/cronotermostato/manifest.json'; d=json.load(open(p)); d['version']='$VERSION'; sorted_d={'domain': d['domain'], 'name': d['name'], **{k: d[k] for k in sorted(d.keys()) if k not in ('domain', 'name')}}; json.dump(sorted_d, open(p, 'w'), indent=2); open(p, 'a').write('\n')"
+
+      - name: Zip custom_components
+        run: |
+          cd "${{ github.workspace }}/custom_components/cronotermostato"
+          zip -r "${{ github.workspace }}/cronotermostato.zip" . -x "*__pycache__*"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          files: |
+            cronotermostato.zip
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

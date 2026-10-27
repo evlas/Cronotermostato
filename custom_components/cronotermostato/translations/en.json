@@ -37,5 +37,97 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "active_slot": {
+        "name": "Active slot"
+      },
+      "next_slot": {
+        "name": "Next slot"
+      },
+      "zone_status": {
+        "name": "Zone status",
+        "state": {
+          "active": "Active",
+          "crono_disabled": "Chrono disabled",
+          "auto_disabled": "Auto control disabled"
+        }
+      }
+    },
+    "switch": {
+      "crono_master": {
+        "name": "Chrono-thermostat enable"
+      },
+      "auto": {
+        "name": "Automatic temperature control"
+      },
+      "secondary_summer": {
+        "name": "Secondary/night zone active in summer"
+      }
+    },
+    "button": {
+      "apply_now": {
+        "name": "Apply current slot"
+      }
+    },
+    "time": {
+      "slot_time_1": { "name": "Slot 1 time" },
+      "slot_time_2": { "name": "Slot 2 time" },
+      "slot_time_3": { "name": "Slot 3 time" },
+      "slot_time_4": { "name": "Slot 4 time" },
+      "slot_time_5": { "name": "Slot 5 time" },
+      "slot_time_6": { "name": "Slot 6 time" },
+      "slot_time_7": { "name": "Slot 7 time" },
+      "slot_time_8": { "name": "Slot 8 time" },
+      "slot_time_9": { "name": "Slot 9 time" },
+      "slot_time_10": { "name": "Slot 10 time" }
+    },
+    "select": {
+      "slot_preset_1": { "name": "Slot 1 mode" },
+      "slot_preset_2": { "name": "Slot 2 mode" },
+      "slot_preset_3": { "name": "Slot 3 mode" },
+      "slot_preset_4": { "name": "Slot 4 mode" },
+      "slot_preset_5": { "name": "Slot 5 mode" },
+      "slot_preset_6": { "name": "Slot 6 mode" },
+      "slot_preset_7": { "name": "Slot 7 mode" },
+      "slot_preset_8": { "name": "Slot 8 mode" },
+      "slot_preset_9": { "name": "Slot 9 mode" },
+      "slot_preset_10": { "name": "Slot 10 mode" }
+    }
+  },
+  "services": {
+    "apply_now": {
+      "name": "Apply current slot",
+      "description": "Forces immediate application of the currently active time slot for the zone.",
+      "fields": {
+        "zone_id": {
+          "name": "Zone Name or ID",
+          "description": "Zone name (e.g. Ground Floor) or config entry ID."
+        }
+      }
+    },
+    "set_slot": {
+      "name": "Set slot time and mode",
+      "description": "Programmatically update the start time and/or preset mode for a specific time slot.",
+      "fields": {
+        "zone_id": {
+          "name": "Zone Name or ID",
+          "description": "Zone name (e.g. Ground Floor)."
+        },
+        "slot_number": {
+          "name": "Slot Number",
+          "description": "Slot index to update (1 to 10)."
+        },
+        "time": {
+          "name": "Start Time",
+          "description": "New start time (HH:MM:SS or HH:MM)."
+        },
+        "preset": {
+          "name": "Preset / Mode",
+          "description": "Target mode (e.g. comfort, standby, economy, building_protection, NONE)."
+        }
+      }
+    }
   }
 }
