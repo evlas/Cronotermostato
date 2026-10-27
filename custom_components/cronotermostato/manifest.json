@@ -1,0 +1,13 @@
+{
+  "domain": "cronotermostato",
+  "name": "Cronotermostato Multizona",
+  "codeowners": [
+    "@evlas"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/evlas/Cronotermostato",
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/evlas/Cronotermostato/issues",
+  "version": "1.0.0"
+}

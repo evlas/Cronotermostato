@@ -1,0 +1,2182 @@
+homeassistant:
+  customize:
+    package.node_anchors:
+      customize: &customize
+        package: 'Cronotermostato'
+        version: '0.1'
+        author: 'Vito Ammirata'
+        reference: 'www.hassiohelp.eu'
+        
+      expose: &expose
+        <<: *customize
+        haaska_hidden: false
+        homebridge_hidden: false
+
+#Entità termostato. 
+
+input_select:
+  modalita_pt_1:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_pt_2:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_pt_3:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_pt_4:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_pt_5:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_psi_1:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_psi_2:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_psi_3:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_psi_4:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+  modalita_psi_5:
+    options:
+      - "NONE"
+      - "comfort"
+      - "standby"
+      - "economy"
+      - "building_protection"
+
+input_datetime:
+  orario_pt_1:
+    has_date: false
+    has_time: true
+  orario_pt_2:
+    has_date: false
+    has_time: true
+  orario_pt_3:
+    has_date: false
+    has_time: true
+  orario_pt_4:
+    has_date: false
+    has_time: true
+  orario_pt_5:
+    has_date: false
+    has_time: true
+  orario_psi_1:
+    has_date: false
+    has_time: true  
+  orario_psi_2:
+    has_date: false
+    has_time: true 
+  orario_psi_3:
+    has_date: false
+    has_time: true  
+  orario_psi_4:
+    has_date: false
+    has_time: true  
+  orario_psi_5:
+    has_date: false
+    has_time: true  
+
+input_boolean:
+  crono_pt:
+    initial: 'on'
+  crono_psi:
+    initial: 'on'
+  zona_notte_partecipa_estate_pt:
+    initial: 'on'
+  zona_notte_partecipa_estate_psi:
+    initial: 'on'
+
+automation:
+  - id: 'accensione auto comfort pt 1'
+    alias: accensione auto comfort pt 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_1
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_1
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto standby pt 1'
+    alias: accensione auto standby pt 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_1
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_1
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto economy pt 1'
+    alias: accensione auto economy pt 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_1
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_1
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto building_protection pt 1'
+    alias: accensione auto building_protection pt 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_1
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_1
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto comfort pt 2'
+    alias: accensione auto comfort pt 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_2
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_2
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto standby pt 2'
+    alias: accensione auto standby pt 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_2
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_2
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto economy pt 2'
+    alias: accensione auto economy pt 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_2
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_2
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto building_protection pt 2'
+    alias: accensione auto building_protection pt 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_2
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_2
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto comfort pt 3'
+    alias: accensione auto comfort pt 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_3
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_3
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto standby pt 3'
+    alias: accensione auto standby pt 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_3
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_3
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto economy pt 3'
+    alias: accensione auto economy pt 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_3
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_3
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto building_protection pt 3'
+    alias: accensione auto building_protection pt 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_3
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_3
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto comfort pt 4'
+    alias: accensione auto comfort pt 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_4
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_4
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto standby pt 4'
+    alias: accensione auto standby pt 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_4
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_4
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto economy pt 4'
+    alias: accensione auto economy pt 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_4
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_4
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto building_protection pt 4'
+    alias: accensione auto building_protection pt 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_4
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_4
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto comfort pt 5'
+    alias: accensione auto comfort pt 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_5
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_5
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto standby pt 5'
+    alias: accensione auto standby pt 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_5
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_5
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto economy pt 5'
+    alias: accensione auto economy pt 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_5
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_5
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id:
+              - climate.salotto
+              - climate.sala_da_pranzo
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_pt
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapt
+    mode: single
+
+  - id: 'accensione auto building_protection pt 5'
+    alias: accensione auto building_protection pt 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_pt_5
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_pt
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopt
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_pt_5
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapt
+    mode: single
+
+####################
+
+  - id: 'accensione auto comfort psi 1'
+    alias: accensione auto comfort psi 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_1
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_1
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto standby psi 1'
+    alias: accensione auto standby psi 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_1
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_1
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto economy psi 1'
+    alias: accensione auto economy psi 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_1
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_1
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto building_protection psi 1'
+    alias: accensione auto building_protection psi 1
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_1
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_1
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto comfort psi 2'
+    alias: accensione auto comfort psi 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_2
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_2
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto standby psi 2'
+    alias: accensione auto standby psi 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_2
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_2
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto economy psi 2'
+    alias: accensione auto economy psi 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_2
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_2
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto building_protection psi 2'
+    alias: accensione auto building_protection psi 2
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_2
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_2
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto comfort psi 3'
+    alias: accensione auto comfort psi 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_3
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_3
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto standby psi 3'
+    alias: accensione auto standby psi 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_3
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_3
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto economy psi 3'
+    alias: accensione auto economy psi 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_3
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_3
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto building_protection psi 3'
+    alias: accensione auto building_protection psi 3
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_3
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_3
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto comfort psi 4'
+    alias: accensione auto comfort psi 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_4
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_4
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto standby psi 4'
+    alias: accensione auto standby psi 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_4
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_4
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto economy psi 4'
+    alias: accensione auto economy psi 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_4
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_4
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto building_protection psi 4'
+    alias: accensione auto building_protection psi 4
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_4
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_4
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto comfort psi 5'
+    alias: accensione auto comfort psi 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_5
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_5
+        state: 'comfort'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: comfort
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto standby psi 5'
+    alias: accensione auto standby psi 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_5
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_5
+        state: 'standby'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: standby
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto economy psi 5'
+    alias: accensione auto economy psi 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_5
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_5
+        state: 'economy'
+    action:
+    - choose:
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'off'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: climate.sala_hobby
+      - conditions:
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: switch.inverno_estate
+              state: 'off'
+            - condition: state
+              entity_id: input_boolean.zona_notte_partecipa_estate_psi
+              state: 'on'    
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi_estate
+      - conditions:
+        - condition: state
+          entity_id: switch.inverno_estate
+          state: 'on'
+        sequence:
+          - action: climate.set_preset_mode
+            data:
+              preset_mode: economy
+            entity_id: group.climapsi
+    mode: single
+
+  - id: 'accensione auto building_protection psi 5'
+    alias: accensione auto building_protection psi 5
+    description: ''
+    trigger:
+      platform: time
+      at: input_datetime.orario_psi_5
+    condition: 
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.crono_psi
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.termoregolazioneautopsi
+        state: 'on'
+      - condition: state
+        entity_id: input_select.modalita_psi_5
+        state: 'building_protection'
+    action:
+    - action: climate.set_preset_mode
+      data:
+        preset_mode: building_protection
+      entity_id: group.climapsi
+    mode: single

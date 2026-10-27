@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Chrono-thermostat Zone Setup",
+        "description": "Configure a new thermal zone managed by the chrono-thermostat.",
+        "data": {
+          "zone_name": "Zone Name (e.g. Ground Floor, Night Zone)",
+          "climate_entities": "Main Thermostats (climate.*)",
+          "secondary_climate_entities": "Secondary / Night Thermostats (optional)",
+          "season_switch": "Summer/Winter Switch (optional)",
+          "season_invert": "Invert season switch logic (if enabled, ON=Summer instead of ON=Winter)",
+          "slots_count": "Number of Daily Time Slots",
+          "restore_on_startup": "Sync and apply active slot on Home Assistant startup"
+        }
+      }
+    },
+    "error": {
+      "no_climate_selected": "You must select at least one main thermostat for the zone."
+    },
+    "abort": {
+      "already_configured": "This zone is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Edit Zone Options",
+        "description": "Modify thermostats or settings for this zone.",
+        "data": {
+          "climate_entities": "Main Thermostats (climate.*)",
+          "secondary_climate_entities": "Secondary / Night Thermostats (optional)",
+          "season_switch": "Summer/Winter Switch (optional)",
+          "season_invert": "Invert season switch logic",
+          "slots_count": "Number of Daily Time Slots",
+          "restore_on_startup": "Sync and apply active slot on Home Assistant startup"
+        }
+      }
+    }
+  }
+}

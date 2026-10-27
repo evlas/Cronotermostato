@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurazione Zona Cronotermostato",
+        "description": "Configura una nuova zona termica gestita dal cronotermostato.",
+        "data": {
+          "zone_name": "Nome della Zona (es. Piano Terra, Zona Notte)",
+          "climate_entities": "Termostati Principali (climate.*)",
+          "secondary_climate_entities": "Termostati Secondari / Notte (opzionale)",
+          "season_switch": "Switch Estate/Inverno (opzionale)",
+          "season_invert": "Inverti logica switch stagione (se abilitato, ON=Estate anziché ON=Inverno)",
+          "slots_count": "Numero di Fasce Orarie Giornaliere",
+          "restore_on_startup": "Allinea e applica la fascia corretta all'avvio di Home Assistant"
+        }
+      }
+    },
+    "error": {
+      "no_climate_selected": "È necessario selezionare almeno un termostato principale per la zona."
+    },
+    "abort": {
+      "already_configured": "Questa zona è già configurata."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Modifica Opzioni Zona",
+        "description": "Modifica i termostati o le impostazioni della zona.",
+        "data": {
+          "climate_entities": "Termostati Principali (climate.*)",
+          "secondary_climate_entities": "Termostati Secondari / Notte (opzionale)",
+          "season_switch": "Switch Estate/Inverno (opzionale)",
+          "season_invert": "Inverti logica switch stagione",
+          "slots_count": "Numero di Fasce Orarie Giornaliere",
+          "restore_on_startup": "Allinea e applica la fascia corretta all'avvio di Home Assistant"
+        }
+      }
+    }
+  }
+}

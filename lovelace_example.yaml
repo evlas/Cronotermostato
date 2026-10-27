@@ -1,0 +1,63 @@
+# ==============================================================================
+# ESEMPIO CARD LOVELACE PER CRONOTERMOSTATO MULTIZONA (es. Piano Terra)
+# ==============================================================================
+
+type: vertical-stack
+cards:
+  # 1. Intestazione & Stato Generale
+  - type: entities
+    title: 🌡️ Cronotermostato Piano Terra
+    show_header_toggle: false
+    entities:
+      - entity: switch.cronotermostato_piano_terra_abilitazione_cronotermostato
+        name: Abilitazione Cronotermostato
+      - entity: switch.cronotermostato_piano_terra_termoregolazione_automatica
+        name: Termoregolazione Automatica
+      - entity: switch.cronotermostato_piano_terra_zona_secondaria_notte_partecipa_in_estate
+        name: Zona Notte Partecipa in Estate
+      - type: divider
+      - entity: sensor.cronotermostato_piano_terra_fascia_attiva
+        name: Fascia Attualmente Attiva
+      - entity: sensor.cronotermostato_piano_terra_prossima_fascia
+        name: Prossimo Cambio Programmato
+      - entity: button.cronotermostato_piano_terra_applica_fascia_corrente
+        name: Forza Allineamento Immediato
+
+  # 2. Programmazione Fasce Orarie (Orario + Modalità)
+  - type: entities
+    title: 🕒 Programmazione Fasce Giornaliere
+    show_header_toggle: false
+    entities:
+      # Fascia 1
+      - entity: time.cronotermostato_piano_terra_orario_fascia_1
+        name: Orario Fascia 1
+      - entity: select.cronotermostato_piano_terra_modalita_fascia_1
+        name: Modalità Fascia 1
+      - type: divider
+
+      # Fascia 2
+      - entity: time.cronotermostato_piano_terra_orario_fascia_2
+        name: Orario Fascia 2
+      - entity: select.cronotermostato_piano_terra_modalita_fascia_2
+        name: Modalità Fascia 2
+      - type: divider
+
+      # Fascia 3
+      - entity: time.cronotermostato_piano_terra_orario_fascia_3
+        name: Orario Fascia 3
+      - entity: select.cronotermostato_piano_terra_modalita_fascia_3
+        name: Modalità Fascia 3
+      - type: divider
+
+      # Fascia 4
+      - entity: time.cronotermostato_piano_terra_orario_fascia_4
+        name: Orario Fascia 4
+      - entity: select.cronotermostato_piano_terra_modalita_fascia_4
+        name: Modalità Fascia 4
+      - type: divider
+
+      # Fascia 5
+      - entity: time.cronotermostato_piano_terra_orario_fascia_5
+        name: Orario Fascia 5
+      - entity: select.cronotermostato_piano_terra_modalita_fascia_5
+        name: Modalità Fascia 5

@@ -1,0 +1,54 @@
+apply_now:
+  name: Applica Fascia Corrente
+  description: Forza l'applicazione immediata della fascia oraria attualmente attiva per la zona indicata.
+  fields:
+    zone_id:
+      name: Nome o ID della Zona
+      description: Il nome della zona (es. "Piano Terra") o l'entry ID della configurazione.
+      required: true
+      example: "Piano Terra"
+      selector:
+        text:
+
+set_slot:
+  name: Imposta Fascia Oraria
+  description: Modifica programmaticamente l'orario e/o la modalità (preset) di una specifica fascia oraria.
+  fields:
+    zone_id:
+      name: Nome o ID della Zona
+      description: Il nome della zona (es. "Piano Terra").
+      required: true
+      example: "Piano Terra"
+      selector:
+        text:
+    slot_number:
+      name: Numero Fascia
+      description: Il numero della fascia da modificare (da 1 a 10).
+      required: true
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 10
+    time:
+      name: Orario
+      description: Nuovo orario di avvio della fascia (HH:MM:SS o HH:MM).
+      required: false
+      example: "07:30:00"
+      selector:
+        time:
+    preset:
+      name: Modalità / Preset
+      description: Modalità desiderata (es. comfort, standby, economy, building_protection, NONE).
+      required: false
+      example: "comfort"
+      selector:
+        select:
+          options:
+            - "NONE"
+            - "comfort"
+            - "standby"
+            - "economy"
+            - "building_protection"
+            - "eco"
+            - "boost"
