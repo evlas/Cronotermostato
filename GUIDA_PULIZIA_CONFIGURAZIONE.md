@@ -6,6 +6,29 @@ Con questa transizione vengono eliminate **56 automazioni ridondanti** e oltre *
 
 ---
 
+## 🎯 Chiarimento Fondamentale: SetPoint vs Fasce Orarie
+
+### 1. I SetPoint di Temperatura (°C) ➔ DA MANTENERE
+La schermata **SetPoint Piano Terra** e **SetPoint Piano Seminterrato** (antigelo 5°C, economy 16°C, comfort 21°C, anticalore 35°C, ecc.) con il tasto **"Update Setpoint PT / PSI"**:
+- **NON era gestita dal package `cronotermostato.yaml`**.
+- È gestita dai file `input_numbers/termoregolazione.yaml`, `input_booleans/termoregolazione.yaml` e dalle 2 automazioni:
+  - `Gestione SetPoint PT` (ID `'1695756904042'`)
+  - `Gestione SetPoint PSI` (ID `'1695756937943'`)
+- Queste servono a inviare via bus KNX (`knx.send`) i valori di calibrazione delle temperature fisiche direttamente dentro le memorie dei termostati/sonde KNX.
+- 👉 **Quella card Lovelace, quegli `input_number` e quelle 2 automazioni NON VANNO TOCCATI né eliminati!**
+
+### 2. Lo switch "Raffrescamento Zona Notte" ➔ INTEGRATO NATIVAMENTE
+- Nella schermata sotto "Condizionamento" c'è lo switch **Raffrescamento Zona Notte**:
+  - Nel vecchio package si chiamava `input_boolean.zona_notte_partecipa_estate_pt` (e `_psi`).
+  - Quando era disattivato in estate, il cronotermostato escludeva le camere da letto dal raffrescamento inviando il preset solo alla zona giorno.
+- **Nella nuova integrazione questo switch è già integrato nativamente**:
+  - Viene generato automaticamente come:
+    `switch.cronotermostato_<nome_zona>_zona_secondaria_notte_partecipa_in_estate`
+  - Basta inserire i termostati della notte (es. `climate.camera_pt`) nel campo **"Termostati Secondari / Notte"** durante la configurazione della zona.
+  - Sulla tua card Lovelace potrai sostituire il vecchio `input_boolean` con il nuovo `switch`, chiamandolo comodamente "Raffrescamento Zona Notte".
+
+---
+
 ## 📋 Riepilogo di Cosa Viene Rimosso
 
 | Componente Vecchio | Dove si trova | Cosa conteneva | Stato con la Nuova Integrazione |
@@ -30,9 +53,8 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
   - `climate.cucina`
   - `climate.disimpegno_pt`
   - `climate.bagno_pt`
-  - `climate.camera_pt`
-- **Termostati Secondari / Notte (opzionale)**:
-  - `climate.camera_pt` (se vuoi escluderla dal raffrescamento estivo)
+- **Termostati Secondari / Notte**:
+  - `climate.camera_pt` *(questo è il termostato comandato dallo switch Raffrescamento Zona Notte!)*
 - **Switch Estate/Inverno**: `switch.inverno_estate` (lascia `Inverti logica` disabilitato: ON=Inverno)
 - **Numero Fasce**: `5`
 - **Sensori Scene KNX**:
@@ -49,8 +71,9 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
   - `climate.bagno_psi`
   - `climate.disimpegno_psi`
   - `climate.lavanderia`
-  - `climate.camera_ospiti`
   - `climate.studio`
+- **Termostati Secondari / Notte**:
+  - `climate.camera_ospiti`
 - **Switch Estate/Inverno**: `switch.inverno_estate`
 - **Numero Fasce**: `5`
 - **Sensori Scene KNX**: gli stessi sensori KNX usati per il PT.
@@ -90,15 +113,18 @@ Queste automazioni gestivano la mutua esclusione tra gli switch e forzavano `bui
 | `'1695758094398'` | **Termoregolazione Manuale PT Off** | ❌ ELIMINARE | Non più necessario |
 | `'1695758126077'` | **Termoregolazione Manuale PT On** | ❌ ELIMINARE | Sostituito dalla modalità `manuale` |
 
-> ⚠️ **ATTENZIONE - Automazioni da MANTENERE**:
-> NON cancellare le automazioni di reset KNX:
-> - `'1695758294486'` (**Scena Vacanza RST**)
-> - `'1695758317122'` (**Scena Uscita RST**)
-> - `'1695758350025'` (**Scena In Casa RST**)
-> - `'1695758381070'` (**Scena Notte RST**)
-> 
-> Queste servono al bus KNX per resettare lo stato dei pulsanti/scene dopo 3 secondi e non interferiscono con il clima.
-> Mantieni anche **Prese Scena ON** e **Prese Scena OFF**.
+> ⚠️ **ATTENZIONE - Automazioni e Helper da MANTENERE ASSOLUTAMENTE**:
+> 1. **Automazioni SetPoint KNX**:
+>    - `'1695756904042'` (**Gestione SetPoint PT**)
+>    - `'1695756937943'` (**Gestione SetPoint PSI**)
+>    - Tutti gli `input_number` in `input_numbers/termoregolazione.yaml`
+>    - Gli `input_boolean.update_setpoint_pt` e `update_setpoint_psi`.
+> 2. **Automazioni Reset KNX**:
+>    - `'1695758294486'` (**Scena Vacanza RST**)
+>    - `'1695758317122'` (**Scena Uscita RST**)
+>    - `'1695758350025'` (**Scena In Casa RST**)
+>    - `'1695758381070'` (**Scena Notte RST**)
+>    - **Prese Scena ON** e **Prese Scena OFF**.
 
 ---
 
@@ -107,7 +133,6 @@ Queste automazioni gestivano la mutua esclusione tra gli switch e forzavano `bui
 1. Apri la cartella dei packages (solitamente `/config/packages/` o inclusa in `configuration.yaml`).
 2. Rimuovi o rinomina il file:
    ```bash
-   # Esempio rinomina di backup prima della cancellazione definitiva:
    mv /config/packages/cronotermostato.yaml /config/packages/cronotermostato.yaml.bak
    ```
 3. Se in `configuration.yaml` avevi una riga dedicata come:
@@ -117,13 +142,13 @@ Queste automazioni gestivano la mutua esclusione tra gli switch e forzavano `bui
    commentala o rimuovila.
 4. Ricarica la configurazione YAML o riavvia Home Assistant.
 
-Tutti i seguenti vecchi helper spariranno automaticamente:
+Tutti i seguenti vecchi helper del package spariranno automaticamente:
 - `input_datetime.time_fascia_1_inverno_pt` ... fino a `fascia_5_estate_psi` (20 helper)
 - `input_select.modalita_fascia_1_inverno_pt` ... fino a `fascia_5_estate_psi` (20 helper)
 - `input_boolean.crono_pt`, `input_boolean.crono_psi`
 - `input_boolean.termoregolazioneautopt`, `input_boolean.termoregolazioneautopsi`
 - `input_boolean.termoregolazionemanualept`, `input_boolean.termoregolazionemanualepsi`
-- `input_boolean.zonanotteinvernopt`
+- `input_boolean.zona_notte_partecipa_estate_pt`, `input_boolean.zona_notte_partecipa_estate_psi`
 
 ---
 
@@ -131,43 +156,40 @@ Tutti i seguenti vecchi helper spariranno automaticamente:
 
 Nelle tue card della plancia:
 
-1. **Nuova Entità Consigliata**:
-   Aggiungi il selettore unico di modalità:
+1. **Card SetPoint KNX (quella nella tua foto)**:
+   - Lasciala esattamente come è!
+   - L'unica modifica che puoi fare è sostituire `input_boolean.zona_notte_partecipa_estate_pt` con il nuovo:
+     `switch.cronotermostato_piano_terra_zona_secondaria_notte_partecipa_in_estate`
+     (puoi dargli come nome personalizzato nella card: `Raffrescamento Zona Notte`).
+
+2. **Nuova Entità Modalità Operativa**:
    - `select.cronotermostato_piano_terra_modalita_operativa`
    - `select.cronotermostato_piano_seminterrato_modalita_operativa`
-   Questo menu a tendina ti permette di scegliere con un solo tocco tra:
+   Permette di scegliere con un solo tocco tra:
    - 🕒 `Cronotermostato (Programmazione oraria)`
    - 🏛️ `Scene KNX`
    - ✋ `Manuale`
    - ❄️ `Spento (Protezione antigelo)`
 
-2. **Selettori Orario e Preset delle Fasce**:
+3. **Selettori Orario e Preset delle Fasce**:
    Sostituisci i vecchi `input_datetime` e `input_select` con le nuove entità native:
    - `time.cronotermostato_piano_terra_orario_fascia_1` ... `5`
    - `select.cronotermostato_piano_terra_modalita_fascia_1` ... `5`
 
-3. **Per consultare una card completa pronta all'uso**:
-   Vedi il file [`lovelace_example.yaml`](lovelace_example.yaml).
+4. **Card completa d'esempio**:
+   Consulta il file [`lovelace_example.yaml`](lovelace_example.yaml).
 
 ---
 
 ## ✅ FASE 5: Checklist di Collaudo
 
-Effettua questa rapida sequenza di verifiche per accertarti che tutto risponda correttamente:
-
 1. [ ] **Test Modalità Cronotermostato**:
    - Imposta la modalità su `Cronotermostato`.
-   - Verifica che il sensore `sensor.cronotermostato_piano_terra_fascia_attiva` riporti lo slot corrente.
-   - Premi il pulsante `button.cronotermostato_piano_terra_applica_fascia_corrente`: verifica nel logbook dei termostati che il preset corretto sia stato inviato.
+   - Verifica che `sensor.cronotermostato_piano_terra_fascia_attiva` riporti lo slot corrente.
 2. [ ] **Test Scene KNX da Tastiera/Pulsantiera**:
    - Imposta la modalità su `Scene KNX` (oppure spegni lo switch `crono`).
-   - Attiva la scena "In Casa": verifica che i termostati vadano in `comfort`.
-   - Attiva la scena "Uscita": verifica che i termostati vadano in `away`.
-   - Attiva la scena "Notte": verifica che vadano in `economy`.
-   - Attiva la scena "Vacanza": verifica che vadano in `building_protection`.
-3. [ ] **Test Spegnimento (OFF)**:
-   - Imposta la modalità su `Spento (Protezione antigelo)` (oppure spegni lo switch `termoregolazione_automatica`).
-   - Verifica che tutti i termostati della zona ricevano immediatamente `building_protection`.
-4. [ ] **Verifica Registro di Sistema**:
-   - Vai in **Impostazioni** > **Sistema** > **Registro**.
-   - Assicurati che non vi siano avvisi o errori relativi a entità mancanti dei vecchi package.
+   - Attiva le scene KNX e verifica il cambio dei preset sui termostati.
+3. [ ] **Test Switch Raffrescamento Notte**:
+   - Con switch disattivato in estate, verifica che i termostati secondari (camere) non ricevano il cambio preset.
+4. [ ] **Test Tasto "Update Setpoint PT / PSI"**:
+   - Modifica un valore (es. comfort da 21 a 21.5) e premi "Update Setpoint PT": verifica che l'automazione continui a inviare correttamente i telegrammi KNX alle sonde.
