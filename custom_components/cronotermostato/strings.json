@@ -11,6 +11,12 @@
           "season_switch": "Summer/Winter Switch (optional)",
           "season_invert": "Invert season switch logic (if enabled, ON=Summer instead of ON=Winter)",
           "slots_count": "Number of Daily Time Slots",
+          "knx_scene_in_casa": "KNX Scene 'At Home' Sensor (value 3, optional)",
+          "knx_scene_uscita": "KNX Scene 'Away' Sensor (value 2, optional)",
+          "knx_scene_notte": "KNX Scene 'Night' Sensor (value 4, optional)",
+          "knx_scene_vacanza": "KNX Scene 'Holiday' Sensor (value 5, optional)",
+          "knx_scene_sensor": "Unified KNX Scene Sensor (optional)",
+          "off_preset": "Preset for Off Mode",
           "restore_on_startup": "Sync and apply active slot on Home Assistant startup"
         }
       }
@@ -33,8 +39,28 @@
           "season_switch": "Summer/Winter Switch (optional)",
           "season_invert": "Invert season switch logic",
           "slots_count": "Number of Daily Time Slots",
+          "knx_scene_in_casa": "KNX Scene 'At Home' Sensor (value 3, optional)",
+          "knx_scene_uscita": "KNX Scene 'Away' Sensor (value 2, optional)",
+          "knx_scene_notte": "KNX Scene 'Night' Sensor (value 4, optional)",
+          "knx_scene_vacanza": "KNX Scene 'Holiday' Sensor (value 5, optional)",
+          "knx_scene_sensor": "Unified KNX Scene Sensor (optional)",
+          "off_preset": "Preset for Off Mode",
           "restore_on_startup": "Sync and apply active slot on Home Assistant startup"
         }
+      }
+    }
+  },
+  "selector": {
+    "preset_options": {
+      "options": {
+        "NONE": "None (Skip slot)",
+        "comfort": "Comfort",
+        "standby": "Standby",
+        "economy": "Economy",
+        "building_protection": "Building Protection (Antifreeze)",
+        "away": "Away",
+        "eco": "Eco",
+        "boost": "Boost"
       }
     }
   },
@@ -49,9 +75,10 @@
       "zone_status": {
         "name": "Zone status",
         "state": {
-          "active": "Active",
-          "crono_disabled": "Chrono disabled",
-          "auto_disabled": "Auto control disabled"
+          "cronotermostato": "Chrono-thermostat (Scheduled)",
+          "scene_knx": "KNX Scenes",
+          "manuale": "Manual",
+          "off": "Off (Building protection)"
         }
       }
     },
@@ -84,6 +111,15 @@
       "slot_time_10": { "name": "Slot 10 time" }
     },
     "select": {
+      "zone_mode": {
+        "name": "Operating mode",
+        "state": {
+          "cronotermostato": "Chrono-thermostat (Scheduled)",
+          "scene_knx": "KNX Scenes",
+          "manuale": "Manual",
+          "off": "Off (Building protection)"
+        }
+      },
       "slot_preset_1": { "name": "Slot 1 mode" },
       "slot_preset_2": { "name": "Slot 2 mode" },
       "slot_preset_3": { "name": "Slot 3 mode" },
@@ -125,7 +161,21 @@
         },
         "preset": {
           "name": "Preset / Mode",
-          "description": "Target mode (e.g. comfort, standby, economy, building_protection, NONE)."
+          "description": "Target mode (e.g. comfort, standby, economy, building_protection, away, eco, boost, NONE)."
+        }
+      }
+    },
+    "set_zone_mode": {
+      "name": "Set zone operating mode",
+      "description": "Switches zone operation between Chrono-thermostat, KNX Scenes, Manual or Off.",
+      "fields": {
+        "zone_id": {
+          "name": "Zone Name or ID",
+          "description": "Zone name (e.g. Ground Floor)."
+        },
+        "mode": {
+          "name": "Operating Mode",
+          "description": "Desired operating mode (cronotermostato, scene_knx, manuale, off)."
         }
       }
     }

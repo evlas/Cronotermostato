@@ -39,7 +39,7 @@ set_slot:
         time:
     preset:
       name: Modalità / Preset
-      description: Modalità desiderata (es. comfort, standby, economy, building_protection, NONE).
+      description: Modalità desiderata (es. comfort, standby, economy, building_protection, away, eco, boost, NONE).
       required: false
       example: "comfort"
       selector:
@@ -50,5 +50,30 @@ set_slot:
             - "standby"
             - "economy"
             - "building_protection"
+            - "away"
             - "eco"
             - "boost"
+
+set_zone_mode:
+  name: Imposta Modalità Operativa Zona
+  description: Passa la zona tra Cronotermostato, Scene KNX, Manuale o Spento (Protezione antigelo).
+  fields:
+    zone_id:
+      name: Nome o ID della Zona
+      description: Il nome della zona (es. "Piano Terra").
+      required: true
+      example: "Piano Terra"
+      selector:
+        text:
+    mode:
+      name: Modalità Operativa
+      description: Scegli la modalità operativa da applicare.
+      required: true
+      example: "cronotermostato"
+      selector:
+        select:
+          options:
+            - "cronotermostato"
+            - "scene_knx"
+            - "manuale"
+            - "off"

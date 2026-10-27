@@ -1,4 +1,4 @@
-"""Piattaforma Select per la scelta dei preset/modalità delle fasce del Cronotermostato."""
+"""Piattaforma Select per la scelta dei preset/modalità delle fasce e della modalità operativa."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DEFAULT_PRESET_OPTIONS, DOMAIN, PRESET_NONE
+from .const import DEFAULT_PRESET_OPTIONS, DOMAIN, PRESET_NONE, ZONE_MODES
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,15 +22,65 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Configura le entità Select per ciascuna fascia oraria della zona."""
+    """Configura le entità Select per la modalità operativa e ciascuna fascia oraria della zona."""
     manager: CronotermostatoZoneManager = hass.data[DOMAIN][entry.entry_id]
 
-    entities = [
-        CronotermostatoSlotPresetEntity(manager, entry, slot_index)
-        for slot_index in range(1, manager.slots_count + 1)
+    entities: list[SelectEntity] = [
+        CronotermostatoZoneModeSelect(manager, entry),
     ]
 
+    entities.extend(
+        [
+            CronotermostatoSlotPresetEntity(manager, entry, slot_index)
+            for slot_index in range(1, manager.slots_count + 1)
+        ]
+    )
+
     async_add_entities(entities)
+
+
+class CronotermostatoZoneModeSelect(RestoreEntity, SelectEntity):
+    """Rappresenta la modalità operativa globale della zona (Cronotermostato, Scene KNX, Manuale, Off)."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "zone_mode"
+    _attr_icon = "mdi:thermostat-cog"
+
+    def __init__(
+        self,
+        manager: CronotermostatoZoneManager,
+        entry: ConfigEntry,
+    ) -> None:
+        self.manager = manager
+        self.entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_select_zone_mode"
+        self._attr_options = ZONE_MODES
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=f"Cronotermostato {manager.zone_name}",
+            manufacturer="evlas",
+            model="Cronotermostato Multizona",
+            sw_version="1.0.0",
+        )
+
+    @property
+    def current_option(self) -> str:
+        """Restituisce la modalità attualmente attiva per la zona."""
+        return self.manager.mode
+
+    async def async_select_option(self, option: str) -> None:
+        """Imposta una nuova modalità operativa per la zona."""
+        if option in self._attr_options:
+            await self.manager.async_set_mode(option)
+
+    async def async_added_to_hass(self) -> None:
+        """Ripristina lo stato memorizzato all'avvio."""
+        await super().async_added_to_hass()
+        self.async_on_remove(self.manager.async_add_listener(self.async_write_ha_state))
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state in self._attr_options:
+            await self.manager.async_set_mode(last_state.state)
 
 
 class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):

@@ -12,14 +12,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import DOMAIN, ZONE_MODES
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
-
-STATUS_ACTIVE = "active"
-STATUS_CRONO_DISABLED = "crono_disabled"
-STATUS_AUTO_DISABLED = "auto_disabled"
 
 
 async def async_setup_entry(
@@ -123,7 +119,7 @@ class CronotermostatoStatusSensor(CronotermostatoBaseSensor):
 
     _attr_translation_key = "zone_status"
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = [STATUS_ACTIVE, STATUS_CRONO_DISABLED, STATUS_AUTO_DISABLED]
+    _attr_options = ZONE_MODES
     _attr_icon = "mdi:information-outline"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
@@ -133,18 +129,22 @@ class CronotermostatoStatusSensor(CronotermostatoBaseSensor):
 
     @property
     def native_value(self) -> str:
-        if not self.manager.crono_enabled:
-            return STATUS_CRONO_DISABLED
-        if not self.manager.auto_enabled:
-            return STATUS_AUTO_DISABLED
-        return STATUS_ACTIVE
+        return self.manager.mode
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
             "last_message": self.manager.last_action_message,
+            "crono_enabled": self.manager.crono_enabled,
+            "auto_enabled": self.manager.auto_enabled,
             "is_winter": self.manager.is_winter(),
             "main_climates": self.manager.climate_entities,
             "secondary_climates": self.manager.secondary_climate_entities,
             "slots_count": self.manager.slots_count,
+            "knx_scene_in_casa": self.manager.knx_scene_in_casa,
+            "knx_scene_uscita": self.manager.knx_scene_uscita,
+            "knx_scene_notte": self.manager.knx_scene_notte,
+            "knx_scene_vacanza": self.manager.knx_scene_vacanza,
+            "knx_scene_sensor": self.manager.knx_scene_sensor,
+            "off_preset": self.manager.off_preset,
         }

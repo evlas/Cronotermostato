@@ -15,12 +15,20 @@ from homeassistant.util import slugify
 
 from .const import (
     CONF_CLIMATE_ENTITIES,
+    CONF_KNX_SCENE_IN_CASA,
+    CONF_KNX_SCENE_NOTTE,
+    CONF_KNX_SCENE_SENSOR,
+    CONF_KNX_SCENE_USCITA,
+    CONF_KNX_SCENE_VACANZA,
+    CONF_OFF_PRESET,
     CONF_RESTORE_ON_STARTUP,
     CONF_SEASON_INVERT,
     CONF_SEASON_SWITCH,
     CONF_SECONDARY_CLIMATE_ENTITIES,
     CONF_SLOTS_COUNT,
     CONF_ZONE_NAME,
+    DEFAULT_OFF_PRESET,
+    DEFAULT_PRESET_OPTIONS,
     DEFAULT_RESTORE_ON_STARTUP,
     DEFAULT_SEASON_INVERT,
     DEFAULT_SLOTS_COUNT,
@@ -83,6 +91,30 @@ class CronotermostatoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         mode=selector.NumberSelectorMode.BOX,
                     )
                 ),
+                vol.Optional(CONF_KNX_SCENE_IN_CASA): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(CONF_KNX_SCENE_USCITA): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(CONF_KNX_SCENE_NOTTE): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(CONF_KNX_SCENE_VACANZA): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(CONF_KNX_SCENE_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(
+                    CONF_OFF_PRESET, default=DEFAULT_OFF_PRESET
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=DEFAULT_PRESET_OPTIONS,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                        translation_key="preset_options",
+                    )
+                ),
                 vol.Optional(
                     CONF_RESTORE_ON_STARTUP, default=DEFAULT_RESTORE_ON_STARTUP
                 ): bool,
@@ -115,7 +147,6 @@ class CronotermostatoOptionsFlowHandler(config_entries.OptionsFlow):
         data = self.config_entry.data
 
         if user_input is not None:
-            # Aggiorna la entry
             new_data = dict(self.config_entry.data)
             new_data.update(user_input)
             self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
@@ -154,6 +185,46 @@ class CronotermostatoOptionsFlowHandler(config_entries.OptionsFlow):
                         max=MAX_SLOTS_COUNT,
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_KNX_SCENE_IN_CASA,
+                    description={"suggested_value": data.get(CONF_KNX_SCENE_IN_CASA)},
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(
+                    CONF_KNX_SCENE_USCITA,
+                    description={"suggested_value": data.get(CONF_KNX_SCENE_USCITA)},
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(
+                    CONF_KNX_SCENE_NOTTE,
+                    description={"suggested_value": data.get(CONF_KNX_SCENE_NOTTE)},
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(
+                    CONF_KNX_SCENE_VACANZA,
+                    description={"suggested_value": data.get(CONF_KNX_SCENE_VACANZA)},
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(
+                    CONF_KNX_SCENE_SENSOR,
+                    description={"suggested_value": data.get(CONF_KNX_SCENE_SENSOR)},
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                ),
+                vol.Optional(
+                    CONF_OFF_PRESET,
+                    default=data.get(CONF_OFF_PRESET, DEFAULT_OFF_PRESET),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=DEFAULT_PRESET_OPTIONS,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                        translation_key="preset_options",
                     )
                 ),
                 vol.Optional(

@@ -12,7 +12,13 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    MODE_CRONOTERMOSTATO,
+    MODE_MANUALE,
+    MODE_OFF,
+    MODE_SCENE_KNX,
+)
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +65,7 @@ class CronotermostatoBaseSwitch(RestoreEntity, SwitchEntity):
 
 
 class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
-    """Switch principale per abilitare/disabilitare la programmazione oraria."""
+    """Switch principale per abilitare/disabilitare la programmazione oraria (Crono)."""
 
     _attr_translation_key = "crono_master"
     _attr_icon = "mdi:calendar-clock"
@@ -73,13 +79,15 @@ class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
         return self.manager.crono_enabled
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        self.manager.crono_enabled = True
-        self.manager._notify_listeners()
-        await self.manager._async_apply_current_slot()
+        """Attivando Crono si passa in modalità programmazione oraria."""
+        await self.manager.async_set_mode(MODE_CRONOTERMOSTATO)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        self.manager.crono_enabled = False
-        self.manager._notify_listeners()
+        """Disattivando Crono, se l'automatismo è attivo si passa a Scene KNX, altrimenti Off."""
+        if self.manager.auto_enabled:
+            await self.manager.async_set_mode(MODE_SCENE_KNX)
+        else:
+            await self.manager.async_set_mode(MODE_OFF)
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -103,13 +111,15 @@ class CronotermostatoAutoSwitch(CronotermostatoBaseSwitch):
         return self.manager.auto_enabled
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        self.manager.auto_enabled = True
-        self.manager._notify_listeners()
-        await self.manager._async_apply_current_slot()
+        """Attivando la termoregolazione: se crono è attivo torna a crono, altrimenti scene KNX."""
+        if self.manager.crono_enabled:
+            await self.manager.async_set_mode(MODE_CRONOTERMOSTATO)
+        else:
+            await self.manager.async_set_mode(MODE_SCENE_KNX)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        self.manager.auto_enabled = False
-        self.manager._notify_listeners()
+        """Disattivando la termoregolazione la zona va in OFF (building protection)."""
+        await self.manager.async_set_mode(MODE_OFF)
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

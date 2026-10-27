@@ -9,46 +9,62 @@
 
 🌐 *[English version](README.md) | Versione in italiano*
 
-**Cronotermostato Multizona** è un'integrazione personalizzata (*Custom Integration*) per **Home Assistant**, progettata come evoluzione avanzata del package YAML originale di gestione fasce orarie e preset per impianti di climatizzazione e riscaldamento HVAC.
+**Cronotermostato Multizona** è un'integrazione personalizzata (*Custom Integration*) per **Home Assistant**, progettata come evoluzione completa del package YAML originale e delle automazioni correlate per la gestione del clima, delle fasce orarie e delle **Scene KNX**.
 
-Elimina la necessità di mantenere decine di automazioni e helper YAML complessi, offrendo una configurazione pulita direttamente dall'interfaccia grafica di Home Assistant con supporto completo per **zone termiche multiple e indipendenti**.
+Elimina completamente la necessità di mantenere decine di automazioni ed entità ausiliarie (*input_datetime*, *input_select*, *input_boolean*), integrando nativamente:
+1. **Programmazione oraria multizona** a fasce giornaliere configurabili.
+2. **Integrazione diretta con Scene KNX** (In Casa, Uscita, Notte, Vacanza) senza automazioni esterne.
+3. **Gestione Clima OFF e Protezione Edificio** (*Building Protection / Antigelo*).
+4. **Allineamento automatico all'avvio** e cambio stagione intelligente.
 
 ---
 
-## 📋 Sintesi dell'Evoluzione dal Package YAML
+## 📋 Sintesi dell'Evoluzione dal Package YAML e Automazioni
 
-| Caratteristica | Vecchio Package YAML (`cronotermostato.yaml`) | Nuova Integrazione Multizona |
+| Caratteristica | Configurazione Precedente (Package + Automazioni) | Nuova Integrazione Multizona |
 |---|---|---|
 | **Gestione Zone** | Rigida (solo Piano Terra `pt` e Seminterrato `psi`) | **Dinamica e illimitata**: configurazione via UI (*Config Flow*) |
 | **Entità Clima** | Hardcoded (`climate.salotto`, `group.climapt`, ecc.) | **Selezionabili da menu a tendina** per ogni zona |
-| **Automazioni nel Registro** | **40 automazioni individuali** (2.180 righe) | **0 automazioni**: motore schedulatore interno in Python |
-| **Allineamento all'avvio** | Mancante (attendeva il prossimo orario) | **Automatico**: calcola e applica la fascia attiva all'avvio |
+| **Automazioni eliminate** | **56 automazioni in totale** (40 nel package + 8 scene KNX + 8 auto/manual) | **0 automazioni esterne**: motore a stati integrato in Python |
+| **Gestione Scene KNX** | 8 automazioni separate sensibili allo stato di `crono` | **Ascolto e cambio preset nativo**: gestito direttamente dal coordinator |
+| **Spegnimento Clima** | Automazioni con forzatura di `building_protection` | **Modalità OFF nativa**: invio automatico del preset di sicurezza |
+| **Allineamento all'avvio** | Mancante (attendeva il prossimo orario) | **Automatico**: calcola e applica la fascia attiva all'avvio di HA |
 | **Selettori Orario** | `input_datetime` generici | Piattaforma nativa **`time`** di Home Assistant |
-| **Selettori Modalità** | `input_select` manuali | Piattaforma nativa **`select`** con preset standard |
-| **Diagnostica e Stato** | Nessuna indicazione in tempo reale | **Sensori dedicati**: *Fascia Attiva*, *Prossima Fascia*, *Stato* |
+| **Selettori Modalità** | `input_select` manuali | Piattaforma nativa **`select`** con preset e modalità operativa |
+| **Diagnostica e Stato** | Nessuna indicazione in tempo reale | **Sensori dedicati**: *Fascia Attiva*, *Prossima Fascia*, *Stato Zona* |
 | **Multilingua** | Solo testo fisso in italiano | **Localizzazione completa (IT ed EN)** con `translation_key` |
 
 ---
 
-## ⚙️ Logica di Funzionamento
+## 🕹️ Modalità Operative di Zona (`select.zone_mode`)
 
-Per ciascuna zona termica creata (es. *Piano Terra*, *Zona Notte*, *Taverna*):
-1. **Configurazione Guidata**:
-   - Assegnazione dei termostati principali (`climate.*`).
-   - Assegnazione facoltativa di termostati secondari / zona notte.
-   - Collegamento facoltativo allo switch stagionale (*Estate / Inverno*).
-   - Numero di fasce orarie giornaliere desiderate (da 1 a 10, predefinito: 5).
-2. **Ciclo Stagionale & Zona Notte**:
-   - **Inverno**: il preset programmato viene inviato a **tutti** i termostati della zona (principali + secondari).
-   - **Estate**: se lo switch *Zona Secondaria/Notte Partecipa in Estate* è disabilitato, i termostati secondari non vengono attivati per evitare raffrescamenti indesiderati.
-3. **Preset Supportati**:
-   - `NONE` (fascia disattivata/saltata)
-   - `comfort`
-   - `standby`
-   - `economy`
-   - `building_protection`
-   - `eco`
-   - `boost`
+Ciascuna zona dispone di un selettore di modalità operativa che coordina il comportamento dei termostati:
+
+- **`cronotermostato` (Programmazione Oraria)**:
+  - Il motore schedulatore applica automaticamente i preset definiti nelle fasce orarie della giornata.
+  - All'attivazione calcola immediatamente la fascia oraria corrente e la applica ai termostati.
+- **`scene_knx` (Controllo da Scene KNX)**:
+  - Sospende la programmazione oraria e si mette in ascolto dei sensori KNX configurati.
+  - Applica immediatamente il preset corrispondente alla scena KNX rilevata.
+- **`manuale` (Controllo Libero)**:
+  - Sospende ogni schedulazione e l'ascolto delle scene KNX, lasciando l'utente libero di impostare i termostati manualmente o da app/tastierino.
+- **`off` (Zona Spenta / Protezione Edificio)**:
+  - Invia immediatamente il preset di sicurezza (`building_protection` o personalizzato) a tutti i termostati della zona e disattiva ogni schedulazione.
+
+> **Retrocompatibilità**: gli switch `crono_master` e `auto` sono bidirezionalmente sincronizzati con la modalità operativa, consentendo di riutilizzare le card Lovelace esistenti senza modifiche.
+
+---
+
+## 🏛️ Integrazione Nativa Scene KNX
+
+Nelle opzioni della zona è possibile associare i sensori KNX dedicati (oppure un sensore unificato DPT 17.001 / 18.001):
+
+| Sensore Scena KNX | Valore Rilevato | Preset Applicato | Significato |
+|---|---|---|---|
+| `knx_scene_in_casa` | `3` | `comfort` | Persone presenti nell'abitazione |
+| `knx_scene_uscita` | `2` | `away` | Abitazione vuota temporaneamente |
+| `knx_scene_notte` | `4` | `economy` | Modalità notturna |
+| `knx_scene_vacanza` | `5` | `building_protection` | Assenza prolungata / protezione antigelo |
 
 ---
 
@@ -56,99 +72,42 @@ Per ciascuna zona termica creata (es. *Piano Terra*, *Zona Notte*, *Taverna*):
 
 | Piattaforma | Translation Key | Icona | Descrizione |
 |---|---|---|---|
-| **`switch`** | `crono_master` | `mdi:calendar-clock` | Switch master per abilitare/disabilitare il cronotermostato |
-| **`switch`** | `auto` | `mdi:thermostat-auto` | Switch termoregolazione automatica |
-| **`switch`** | `secondary_summer` | `mdi:bed` | *(Opzionale)* Inclusione zona secondaria/notte in estate |
-| **`time`** | `slot_time_1` .. `slot_time_N` | `mdi:clock-outline` | Orario di avvio per ciascuna fascia programmata |
-| **`select`** | `slot_preset_1` .. `slot_preset_N` | `mdi:tune-vertical` | Preset / modalità assegnata a ciascuna fascia |
-| **`sensor`** | `active_slot` | `mdi:clock-check-outline` | Fascia oraria attualmente in esecuzione |
-| **`sensor`** | `next_slot` | `mdi:clock-fast` | Prossima fascia programmata e relativo orario |
-| **`sensor`** | `zone_status` | `mdi:information-outline` | Stato diagnostico (`active`, `crono_disabled`, `auto_disabled`) |
-| **`button`** | `apply_now` | `mdi:play-circle-outline` | Pulsante per forzare l'applicazione della fascia corrente |
+| **`select`** | `zone_mode` | `mdi:thermostat-cog` | Modalità operativa globale (`cronotermostato`, `scene_knx`, `manuale`, `off`) |
+| **`switch`** | `crono_master` | `mdi:calendar-clock` | Switch master per abilitare/disabilitare la programmazione oraria |
+| **`switch`** | `auto` | `mdi:thermostat-auto` | Switch termoregolazione automatica (se spento porta in OFF) |
+| **`switch`** | `secondary_summer` | `mdi:bed` | *(Opzionale)* Consente alla zona secondaria/notte di partecipare al raffrescamento estivo |
+| **`time`** | `slot_time_X` | `mdi:clock-outline` | Orario di inizio della fascia oraria *X* (da 1 a N) |
+| **`select`** | `slot_preset_X` | `mdi:tune-vertical` | Preset associato alla fascia oraria *X* |
+| **`sensor`** | `active_slot` | `mdi:clock-check-outline` | Fascia attualmente attiva con orario e preset |
+| **`sensor`** | `next_slot` | `mdi:clock-fast` | Prossima fascia programmata |
+| **`sensor`** | `zone_status` | `mdi:information-outline` | Modalità corrente e diagnostica di zona |
+| **`button`** | `apply_now` | `mdi:play-circle-outline` | Forza il ricalcolo e l'applicazione immediata della fascia corrente |
 
 ---
 
-## 📦 Installazione
+## 🛠️ Servizi Disponibili
 
-### Metodo 1: Tramite HACS (Consigliato)
-1. Assicurati che **HACS** sia installato nel tuo Home Assistant.
-2. Vai su **HACS** ➡️ **Integrazioni** ➡️ menu con i tre puntini in alto a destra ➡️ **Repository personalizzati**.
-3. Inserisci l'URL del repository:
-   ```text
-   https://github.com/evlas/Cronotermostato
-   ```
-4. Seleziona come categoria **Integrazione** e clicca su **Aggiungi**.
-5. Cerca **Cronotermostato Multizona**, clicca su **Scarica** e riavvia Home Assistant.
-
-### Metodo 2: Installazione Manuale
-1. Scarica l'archivio `cronotermostato.zip` dalle [Releases](https://github.com/evlas/Cronotermostato/releases) o clona il repository.
-2. Copia la cartella `custom_components/cronotermostato/` all'interno della cartella `custom_components/` della tua installazione di Home Assistant:
-   ```text
-   /config/custom_components/cronotermostato/
-   ```
-3. Riavvia Home Assistant.
-
----
-
-## 🛠️ Configurazione di una Zona
-
-1. In Home Assistant, vai su **Impostazioni** ➡️ **Dispositivi e Servizi**.
-2. Clicca su **Aggiungi Integrazione** in basso a destra.
-3. Cerca **Cronotermostato Multizona**.
-4. Compila i campi guidati:
-   - **Nome della Zona**: es. `Piano Terra`.
-   - **Termostati Principali**: seleziona le entità `climate.*` della zona.
-   - **Termostati Secondari (opzionale)**: es. termostati delle camere da letto.
-   - **Switch Estate/Inverno (opzionale)**: es. `switch.inverno_estate`.
-   - **Inverti logica switch stagione**: lascia disattivato se `ON = Inverno` e `OFF = Estate`.
-   - **Numero di Fasce Orarie**: es. `5`.
-5. Clicca su **Invia**: il dispositivo con tutte le sue entità verrà generato automaticamente!
-
-> [!TIP]
-> Puoi modificare i termostati o le impostazioni in qualsiasi momento cliccando su **Configura** nella scheda dell'integrazione, senza perdere le fasce orarie impostate.
-
----
-
-## 📱 Esempio di Dashboard Lovelace
-
-Nella cartella del repository trovi il file [`lovelace_example.yaml`](lovelace_example.yaml) pronto all'uso:
-
+### `cronotermostato.set_zone_mode`
+Imposta la modalità operativa globale della zona:
 ```yaml
-type: entities
-title: 🌡️ Cronotermostato Piano Terra
-entities:
-  - entity: switch.cronotermostato_piano_terra_abilitazione_cronotermostato
-  - entity: switch.cronotermostato_piano_terra_termoregolazione_automatica
-  - entity: sensor.cronotermostato_piano_terra_fascia_attiva
-  - entity: sensor.cronotermostato_piano_terra_prossima_fascia
-  - entity: button.cronotermostato_piano_terra_applica_fascia_corrente
-  - type: divider
-  - entity: time.cronotermostato_piano_terra_orario_fascia_1
-  - entity: select.cronotermostato_piano_terra_modalita_fascia_1
-  - entity: time.cronotermostato_piano_terra_orario_fascia_2
-  - entity: select.cronotermostato_piano_terra_modalita_fascia_2
-  - entity: time.cronotermostato_piano_terra_orario_fascia_3
-  - entity: select.cronotermostato_piano_terra_modalita_fascia_3
+service: cronotermostato.set_zone_mode
+data:
+  zone_id: "Piano Terra"
+  mode: "cronotermostato"  # oppure scene_knx, manuale, off
 ```
 
----
-
-## ⚡ Servizi Personalizzati
-
-L'integrazione espone due servizi utilizzabili in script o automazioni esterne:
-
-### 1. `cronotermostato.apply_now`
-Forza l'applicazione immediata della fascia oraria attualmente attiva per la zona specificata.
+### `cronotermostato.apply_now`
+Forza l'applicazione della fascia oraria attualmente attiva:
 ```yaml
-action: cronotermostato.apply_now
+service: cronotermostato.apply_now
 data:
   zone_id: "Piano Terra"
 ```
 
-### 2. `cronotermostato.set_slot`
-Modifica programmaticamente l'orario e/o il preset di una specifica fascia.
+### `cronotermostato.set_slot`
+Modifica orario e preset di una fascia specifica:
 ```yaml
-action: cronotermostato.set_slot
+service: cronotermostato.set_slot
 data:
   zone_id: "Piano Terra"
   slot_number: 1
@@ -158,6 +117,25 @@ data:
 
 ---
 
+## 📦 Installazione tramite HACS
+
+1. Assicurati che **HACS** sia installato nel tuo Home Assistant.
+2. Apri **HACS** > **Integrazioni** > Menu tre puntini in alto a destra > **Repository personalizzati**.
+3. Incolla l'URL del repository: `https://github.com/evlas/Cronotermostato`
+4. Categoria: **Integrazione**.
+5. Fai clic su **Aggiungi** e poi installa **Cronotermostato Multizona**.
+6. Riavvia Home Assistant.
+7. Vai su **Impostazioni** > **Dispositivi e Servizi** > **Aggiungi Integrazione** e cerca **Cronotermostato Multizona**.
+
+---
+
+## 🧹 Pulizia della Vecchia Configurazione
+
+Per la procedura dettagliata di rimozione del vecchio package YAML e delle automazioni ridondanti, consulta il documento dedicato:
+👉 [Guida Pulizia Configurazione](GUIDA_PULIZIA_CONFIGURAZIONE.md)
+
+---
+
 ## 📄 Licenza
-Rilasciato sotto licenza open-source **GPL-3.0**.  
-Autore: **Vito Ammirata** ([@evlas](https://github.com/evlas)).
+
+Rilasciato sotto licenza [GNU General Public License v3.0](LICENSE).

@@ -4,18 +4,22 @@
 
 type: vertical-stack
 cards:
-  # 1. Intestazione & Stato Generale
+  # 1. Intestazione & Modalità Operativa Generale
   - type: entities
     title: 🌡️ Cronotermostato Piano Terra
     show_header_toggle: false
     entities:
+      - entity: select.cronotermostato_piano_terra_modalita_operativa
+        name: Modalità Operativa Globale
       - entity: switch.cronotermostato_piano_terra_abilitazione_cronotermostato
-        name: Abilitazione Cronotermostato
+        name: Abilitazione Cronotermostato (Programmazione)
       - entity: switch.cronotermostato_piano_terra_termoregolazione_automatica
         name: Termoregolazione Automatica
       - entity: switch.cronotermostato_piano_terra_zona_secondaria_notte_partecipa_in_estate
         name: Zona Notte Partecipa in Estate
       - type: divider
+      - entity: sensor.cronotermostato_piano_terra_stato_zona
+        name: Stato Diagnostico Zona
       - entity: sensor.cronotermostato_piano_terra_fascia_attiva
         name: Fascia Attualmente Attiva
       - entity: sensor.cronotermostato_piano_terra_prossima_fascia
