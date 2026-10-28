@@ -383,7 +383,7 @@ class CronotermostatoZoneManager:
         best_time: time | None = None
 
         for slot_num, slot in self.slots.items():
-            if slot.preset == PRESET_NONE:
+            if not slot.preset or slot.preset.lower() in (PRESET_NONE, "none"):
                 continue
 
             if slot.time <= now:
@@ -394,7 +394,7 @@ class CronotermostatoZoneManager:
         if best_slot is None:
             max_time: time | None = None
             for slot_num, slot in self.slots.items():
-                if slot.preset == PRESET_NONE:
+                if not slot.preset or slot.preset.lower() in (PRESET_NONE, "none"):
                     continue
                 if max_time is None or slot.time > max_time:
                     max_time = slot.time
@@ -415,7 +415,7 @@ class CronotermostatoZoneManager:
     async def async_apply_slot(self, slot_num: int) -> bool:
         """Applica la modalità di una fascia oraria specifica ai climate della zona."""
         slot = self.slots.get(slot_num)
-        if not slot or slot.preset == PRESET_NONE:
+        if not slot or not slot.preset or slot.preset.lower() in (PRESET_NONE, "none"):
             return False
 
         success = await self.async_apply_preset(
@@ -482,7 +482,7 @@ class CronotermostatoZoneManager:
 
         now = dt_util.now().time()
         sorted_slots = sorted(
-            [s for s in self.slots.values() if s.preset != PRESET_NONE],
+            [s for s in self.slots.values() if s.preset and s.preset.lower() not in (PRESET_NONE, "none")],
             key=lambda s: s.time,
         )
 

@@ -114,15 +114,17 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
     def current_option(self) -> str:
         """Restituisce la modalità attualmente selezionata per la fascia."""
         slot = self.manager.slots.get(self.slot_index)
-        if slot and slot.preset in self._attr_options:
-            return slot.preset
+        if slot:
+            val = slot.preset.lower() if slot.preset else PRESET_NONE
+            if val in self._attr_options:
+                return val
         return PRESET_NONE
 
     async def async_select_option(self, option: str) -> None:
         """Imposta una nuova modalità per la fascia."""
         slot = self.manager.slots.get(self.slot_index)
         if slot and option in self._attr_options:
-            slot.preset = option
+            slot.preset = option.lower()
             self.manager._notify_listeners()
             self.async_write_ha_state()
 
@@ -132,7 +134,9 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
         self.async_on_remove(self.manager.async_add_listener(self.async_write_ha_state))
 
         last_state = await self.async_get_last_state()
-        if last_state and last_state.state in self._attr_options:
-            slot = self.manager.slots.get(self.slot_index)
-            if slot:
-                slot.preset = last_state.state
+        if last_state and last_state.state:
+            val = last_state.state.lower()
+            if val in self._attr_options:
+                slot = self.manager.slots.get(self.slot_index)
+                if slot:
+                    slot.preset = val

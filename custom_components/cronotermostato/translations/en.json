@@ -45,7 +45,7 @@
   "selector": {
     "preset_options": {
       "options": {
-        "NONE": "None (Skip slot)",
+        "none": "None (Skip slot)",
         "comfort": "Comfort",
         "standby": "Standby",
         "economy": "Economy",
@@ -155,7 +155,7 @@
         },
         "preset": {
           "name": "Preset / Mode",
-          "description": "Target mode (e.g. comfort, standby, economy, building_protection, away, eco, boost, NONE)."
+          "description": "Target mode (e.g. comfort, standby, economy, building_protection, away, eco, boost, none)."
         }
       }
     },

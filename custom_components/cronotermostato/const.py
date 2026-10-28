@@ -54,7 +54,7 @@ ZONE_MODES = [
 ]
 
 # Preset supportati dai termostati
-PRESET_NONE = "NONE"
+PRESET_NONE = "none"
 PRESET_COMFORT = "comfort"
 PRESET_STANDBY = "standby"
 PRESET_ECONOMY = "economy"

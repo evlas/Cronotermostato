@@ -45,7 +45,7 @@
   "selector": {
     "preset_options": {
       "options": {
-        "NONE": "NONE (Salta fascia)",
+        "none": "Nessuno (Salta fascia)",
         "comfort": "Comfort",
         "standby": "Standby",
         "economy": "Economy",
@@ -155,7 +155,7 @@
         },
         "preset": {
           "name": "Modalità / Preset",
-          "description": "Modalità desiderata (es. comfort, standby, economy, building_protection, away, eco, boost, NONE)."
+          "description": "Modalità desiderata (es. comfort, standby, economy, building_protection, away, eco, boost, none)."
         }
       }
     },

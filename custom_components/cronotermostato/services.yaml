@@ -39,13 +39,13 @@ set_slot:
         time:
     preset:
       name: Modalità / Preset
-      description: Modalità desiderata (es. comfort, standby, economy, building_protection, away, eco, boost, NONE).
+      description: Modalità desiderata (es. comfort, standby, economy, building_protection, away, eco, boost, none).
       required: false
       example: "comfort"
       selector:
         select:
           options:
-            - "NONE"
+            - "none"
             - "comfort"
             - "standby"
             - "economy"
