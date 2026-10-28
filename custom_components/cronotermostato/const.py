@@ -22,8 +22,9 @@ CONF_SEASON_INVERT = "season_invert"
 CONF_SLOTS_COUNT = "slots_count"
 CONF_RESTORE_ON_STARTUP = "restore_on_startup"
 
-# Chiavi di configurazione Scene KNX e Spegnimento
-CONF_KNX_SCENE_SENSOR = "knx_scene_sensor"
+# Chiavi di configurazione Scene / Presenza e Spegnimento
+CONF_SCENE_SENSOR = "scene_sensor"
+CONF_KNX_SCENE_SENSOR = "knx_scene_sensor"  # Deprecato ma mantenuto per retrocompatibilità
 CONF_KNX_SCENE_IN_CASA = "knx_scene_in_casa"
 CONF_KNX_SCENE_USCITA = "knx_scene_uscita"
 CONF_KNX_SCENE_NOTTE = "knx_scene_notte"
@@ -40,13 +41,14 @@ DEFAULT_RESTORE_ON_STARTUP = True
 
 # Modalità operative globali della zona
 MODE_CRONOTERMOSTATO = "cronotermostato"
-MODE_SCENE_KNX = "scene_knx"
+MODE_SCENE = "scene"
+MODE_SCENE_KNX = "scene"  # Alias per retrocompatibilità
 MODE_MANUALE = "manuale"
 MODE_OFF = "off"
 
 ZONE_MODES = [
     MODE_CRONOTERMOSTATO,
-    MODE_SCENE_KNX,
+    MODE_SCENE,
     MODE_MANUALE,
     MODE_OFF,
 ]
@@ -71,6 +73,14 @@ DEFAULT_PRESET_OPTIONS = [
     PRESET_ECO,
     PRESET_BOOST,
 ]
+
+# Mappatura universale sensore di scena/presenza (ad es. sensor.ultima_scena)
+SCENE_PRESET_MAPPING: dict[str, list[str]] = {
+    PRESET_COMFORT: ["in casa", "in_casa", "home", "comfort"],
+    PRESET_AWAY: ["uscita", "away", "eco"],
+    PRESET_ECONOMY: ["notte", "night", "sleep", "economy"],
+    PRESET_BUILDING_PROTECTION: ["vacanza", "holiday", "protezione"],
+}
 
 DEFAULT_OFF_PRESET = PRESET_BUILDING_PROTECTION
 

@@ -11,11 +11,7 @@
           "season_switch": "Switch Estate/Inverno (opzionale)",
           "season_invert": "Inverti logica switch stagione (se abilitato, ON=Estate anziché ON=Inverno)",
           "slots_count": "Numero di Fasce Orarie Giornaliere",
-          "knx_scene_in_casa": "Sensore Scena KNX In Casa (valore 3, opzionale)",
-          "knx_scene_uscita": "Sensore Scena KNX Uscita (valore 2, opzionale)",
-          "knx_scene_notte": "Sensore Scena KNX Notte (valore 4, opzionale)",
-          "knx_scene_vacanza": "Sensore Scena KNX Vacanza (valore 5, opzionale)",
-          "knx_scene_sensor": "Sensore Scena KNX unificato (opzionale)",
+          "scene_sensor": "Sensore Scena / Presenza (es. sensor.ultima_scena, opzionale)",
           "off_preset": "Preset per modalità Spento/OFF",
           "restore_on_startup": "Allinea e applica la fascia corretta all'avvio di Home Assistant"
         }
@@ -39,11 +35,7 @@
           "season_switch": "Switch Estate/Inverno (opzionale)",
           "season_invert": "Inverti logica switch stagione",
           "slots_count": "Numero di Fasce Orarie Giornaliere",
-          "knx_scene_in_casa": "Sensore Scena KNX In Casa (valore 3, opzionale)",
-          "knx_scene_uscita": "Sensore Scena KNX Uscita (valore 2, opzionale)",
-          "knx_scene_notte": "Sensore Scena KNX Notte (valore 4, opzionale)",
-          "knx_scene_vacanza": "Sensore Scena KNX Vacanza (valore 5, opzionale)",
-          "knx_scene_sensor": "Sensore Scena KNX unificato (opzionale)",
+          "scene_sensor": "Sensore Scena / Presenza (es. sensor.ultima_scena, opzionale)",
           "off_preset": "Preset per modalità Spento/OFF",
           "restore_on_startup": "Allinea e applica la fascia corretta all'avvio di Home Assistant"
         }
@@ -76,7 +68,8 @@
         "name": "Stato zona",
         "state": {
           "cronotermostato": "Cronotermostato (Programmazione oraria)",
-          "scene_knx": "Scene KNX",
+          "scene": "Scena / Presenza",
+          "scene_knx": "Scena / Presenza",
           "manuale": "Manuale",
           "off": "Spento (Protezione antigelo)"
         }
@@ -115,7 +108,8 @@
         "name": "Modalità operativa",
         "state": {
           "cronotermostato": "Cronotermostato (Programmazione oraria)",
-          "scene_knx": "Scene KNX",
+          "scene": "Scena / Presenza",
+          "scene_knx": "Scena / Presenza",
           "manuale": "Manuale",
           "off": "Spento (Protezione antigelo)"
         }
@@ -167,7 +161,7 @@
     },
     "set_zone_mode": {
       "name": "Imposta modalità operativa zona",
-      "description": "Passa la modalità di funzionamento della zona tra Cronotermostato, Scene KNX, Manuale o Spento.",
+      "description": "Passa la modalità di funzionamento della zona tra Cronotermostato, Scena / Presenza, Manuale o Spento.",
       "fields": {
         "zone_id": {
           "name": "Nome o ID della Zona",
@@ -175,7 +169,7 @@
         },
         "mode": {
           "name": "Modalità Operativa",
-          "description": "Modalità operativa desiderata (cronotermostato, scene_knx, manuale, off)."
+          "description": "Modalità operativa desiderata (cronotermostato, scene, manuale, off)."
         }
       }
     }

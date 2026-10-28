@@ -17,7 +17,7 @@ from .const import (
     MODE_CRONOTERMOSTATO,
     MODE_MANUALE,
     MODE_OFF,
-    MODE_SCENE_KNX,
+    MODE_SCENE,
 )
 from .coordinator import CronotermostatoZoneManager
 
@@ -85,7 +85,7 @@ class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disattivando Crono, se l'automatismo è attivo si passa a Scene KNX, altrimenti Off."""
         if self.manager.auto_enabled:
-            await self.manager.async_set_mode(MODE_SCENE_KNX)
+            await self.manager.async_set_mode(MODE_SCENE)
         else:
             await self.manager.async_set_mode(MODE_OFF)
 
@@ -115,7 +115,7 @@ class CronotermostatoAutoSwitch(CronotermostatoBaseSwitch):
         if self.manager.crono_enabled:
             await self.manager.async_set_mode(MODE_CRONOTERMOSTATO)
         else:
-            await self.manager.async_set_mode(MODE_SCENE_KNX)
+            await self.manager.async_set_mode(MODE_SCENE)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disattivando la termoregolazione la zona va in OFF (building protection)."""

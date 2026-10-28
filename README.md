@@ -9,7 +9,7 @@
 
 🌐 *English version | [Versione in italiano](README.it.md)*
 
-**Multi-Zone Chrono-thermostat** (*Cronotermostato Multizona*) is an advanced custom integration for **Home Assistant**, designed to evolve legacy YAML packages and automations into an elegant, reliable, and multi-zone climate controller with native **KNX Scenes** support.
+**Multi-Zone Chrono-thermostat** (*Cronotermostato Multizona*) is an advanced custom integration for **Home Assistant**, designed to evolve legacy YAML packages and automations into an elegant, reliable, and multi-zone climate controller with native **Scene / Presence** support.
 
 It completely eliminates the need to maintain dozens of complex automations and auxiliary YAML entities (*input_datetime*, *input_select*, *input_boolean*).
 
@@ -35,7 +35,7 @@ It completely eliminates the need to maintain dozens of complex automations and 
 
 Each zone provides a unified operating mode selector:
 - **`cronotermostato` (Scheduled Chrono-thermostat)**: Evaluates active time slots and applies scheduled presets.
-- **`scene_knx` (KNX Scene Control)**: Halts the time schedule and listens directly to KNX scene sensors.
+- **`scene` (KNX Scene Control)**: Halts the time schedule and listens directly to KNX scene sensors.
 - **`manuale` (Manual)**: Suspends all automation, leaving thermostats open for local/manual control.
 - **`off` (Building Protection)**: Sends safety preset (`building_protection` or custom) to all thermostats in the zone.
 
@@ -54,7 +54,7 @@ Each zone provides a unified operating mode selector:
 
 ## 🛠️ Custom Services
 
-- **`cronotermostato.set_zone_mode`**: Change operating mode (`cronotermostato`, `scene_knx`, `manuale`, `off`).
+- **`cronotermostato.set_zone_mode`**: Change operating mode (`cronotermostato`, `scene`, `manuale`, `off`).
 - **`cronotermostato.apply_now`**: Force immediate evaluation and application of the current time slot.
 - **`cronotermostato.set_slot`**: Programmatically modify start time and preset for any slot.
 

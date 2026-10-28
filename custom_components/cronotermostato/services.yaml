@@ -56,7 +56,7 @@ set_slot:
 
 set_zone_mode:
   name: Imposta Modalità Operativa Zona
-  description: Passa la zona tra Cronotermostato, Scene KNX, Manuale o Spento (Protezione antigelo).
+  description: Passa la zona tra Cronotermostato, Scena / Presenza, Manuale o Spento (Protezione antigelo).
   fields:
     zone_id:
       name: Nome o ID della Zona
@@ -74,6 +74,7 @@ set_zone_mode:
         select:
           options:
             - "cronotermostato"
+            - "scene"
             - "scene_knx"
             - "manuale"
             - "off"

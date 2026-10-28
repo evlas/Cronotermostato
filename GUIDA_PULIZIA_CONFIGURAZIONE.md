@@ -57,7 +57,7 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
   - `climate.camera_pt` *(questo è il termostato comandato dallo switch Raffrescamento Zona Notte!)*
 - **Switch Estate/Inverno**: `switch.inverno_estate` (lascia `Inverti logica` disabilitato: ON=Inverno)
 - **Numero Fasce**: `5`
-- **Sensori Scene KNX**:
+- **Sensori Scene / Presenza**:
   - *In Casa (3)*: `sensor.sceneknxincasa`
   - *Uscita (2)*: `sensor.sceneknxuscita`
   - *Notte (4)*: `sensor.sceneknxnotte`
@@ -76,7 +76,7 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
   - `climate.camera_ospiti`
 - **Switch Estate/Inverno**: `switch.inverno_estate`
 - **Numero Fasce**: `5`
-- **Sensori Scene KNX**: gli stessi sensori KNX usati per il PT.
+- **Sensori Scene / Presenza**: gli stessi sensori KNX usati per il PT.
 - **Preset Spento/OFF**: `building_protection`
 
 ---
@@ -86,7 +86,7 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
 Apri il file `/config/automations.yaml` (oppure vai in **Impostazioni** > **Automazioni e Scene** dall'interfaccia web) ed elimina le seguenti **16 automazioni**:
 
 ### 1. Le 8 Automazioni Scene Clima KNX
-Queste automazioni inviavano i preset a `group.climapt` e `group.climapsi` quando `crono` era spento. Ora sono gestite nativamente dall'integrazione in modalità **Scene KNX**:
+Queste automazioni inviavano i preset a `group.climapt` e `group.climapsi` quando `crono` era spento. Ora sono gestite nativamente dall'integrazione in modalità **Scene / Presenza**:
 
 | ID | Alias | Azione | Note |
 |---|---|---|---|
@@ -167,7 +167,7 @@ Nelle tue card della plancia:
    - `select.cronotermostato_piano_seminterrato_modalita_operativa`
    Permette di scegliere con un solo tocco tra:
    - 🕒 `Cronotermostato (Programmazione oraria)`
-   - 🏛️ `Scene KNX`
+   - 🏛️ `Scene / Presenza`
    - ✋ `Manuale`
    - ❄️ `Spento (Protezione antigelo)`
 
@@ -186,8 +186,8 @@ Nelle tue card della plancia:
 1. [ ] **Test Modalità Cronotermostato**:
    - Imposta la modalità su `Cronotermostato`.
    - Verifica che `sensor.cronotermostato_piano_terra_fascia_attiva` riporti lo slot corrente.
-2. [ ] **Test Scene KNX da Tastiera/Pulsantiera**:
-   - Imposta la modalità su `Scene KNX` (oppure spegni lo switch `crono`).
+2. [ ] **Test Scene / Presenza da Tastiera/Pulsantiera**:
+   - Imposta la modalità su `Scene / Presenza` (oppure spegni lo switch `crono`).
    - Attiva le scene KNX e verifica il cambio dei preset sui termostati.
 3. [ ] **Test Switch Raffrescamento Notte**:
    - Con switch disattivato in estate, verifica che i termostati secondari (camere) non ricevano il cambio preset.

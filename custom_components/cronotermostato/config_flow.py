@@ -2,26 +2,20 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
-
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
-from homeassistant.util import slugify
 
 from .const import (
     CONF_CLIMATE_ENTITIES,
-    CONF_KNX_SCENE_IN_CASA,
-    CONF_KNX_SCENE_NOTTE,
     CONF_KNX_SCENE_SENSOR,
-    CONF_KNX_SCENE_USCITA,
-    CONF_KNX_SCENE_VACANZA,
     CONF_OFF_PRESET,
     CONF_RESTORE_ON_STARTUP,
+    CONF_SCENE_SENSOR,
     CONF_SEASON_INVERT,
     CONF_SEASON_SWITCH,
     CONF_SECONDARY_CLIMATE_ENTITIES,
@@ -38,28 +32,28 @@ from .const import (
     MIN_SLOTS_COUNT,
 )
 
-_LOGGER = logging.getLogger(__name__)
-
 
 class CronotermostatoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Gestisce il Config Flow per aggiungere nuove zone."""
+    """Gestisce il Config Flow per l'integrazione Cronotermostato."""
 
     VERSION = 1
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Primo step: configurazione della zona."""
+        """Configurazione di una nuova zona del cronotermostato."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            zone_name = user_input[CONF_ZONE_NAME].strip()
-            unique_id = f"cronotermostato_{slugify(zone_name)}"
+            zone_name = user_input.get(CONF_ZONE_NAME, DEFAULT_ZONE_NAME).strip()
+            unique_id = f"cronotermostato_{zone_name.lower().replace(' ', '_')}"
 
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
-            if not user_input.get(CONF_CLIMATE_ENTITIES):
+            # Valida che sia stato selezionato almeno un termostato
+            climates = user_input.get(CONF_CLIMATE_ENTITIES, [])
+            if not climates:
                 errors[CONF_CLIMATE_ENTITIES] = "no_climate_selected"
 
             if not errors:
@@ -91,20 +85,8 @@ class CronotermostatoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         mode=selector.NumberSelectorMode.BOX,
                     )
                 ),
-                vol.Optional(CONF_KNX_SCENE_IN_CASA): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(CONF_KNX_SCENE_USCITA): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(CONF_KNX_SCENE_NOTTE): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(CONF_KNX_SCENE_VACANZA): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(CONF_KNX_SCENE_SENSOR): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                vol.Optional(CONF_SCENE_SENSOR): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["sensor", "input_select", "select"], multiple=False)
                 ),
                 vol.Optional(
                     CONF_OFF_PRESET, default=DEFAULT_OFF_PRESET
@@ -152,6 +134,8 @@ class CronotermostatoOptionsFlowHandler(config_entries.OptionsFlow):
             self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
             return self.async_create_entry(title="", data={})
 
+        current_scene_sensor = data.get(CONF_SCENE_SENSOR) or data.get(CONF_KNX_SCENE_SENSOR)
+
         schema = vol.Schema(
             {
                 vol.Required(
@@ -188,34 +172,10 @@ class CronotermostatoOptionsFlowHandler(config_entries.OptionsFlow):
                     )
                 ),
                 vol.Optional(
-                    CONF_KNX_SCENE_IN_CASA,
-                    description={"suggested_value": data.get(CONF_KNX_SCENE_IN_CASA)},
+                    CONF_SCENE_SENSOR,
+                    description={"suggested_value": current_scene_sensor},
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(
-                    CONF_KNX_SCENE_USCITA,
-                    description={"suggested_value": data.get(CONF_KNX_SCENE_USCITA)},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(
-                    CONF_KNX_SCENE_NOTTE,
-                    description={"suggested_value": data.get(CONF_KNX_SCENE_NOTTE)},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(
-                    CONF_KNX_SCENE_VACANZA,
-                    description={"suggested_value": data.get(CONF_KNX_SCENE_VACANZA)},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
-                ),
-                vol.Optional(
-                    CONF_KNX_SCENE_SENSOR,
-                    description={"suggested_value": data.get(CONF_KNX_SCENE_SENSOR)},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor", multiple=False)
+                    selector.EntitySelectorConfig(domain=["sensor", "input_select", "select"], multiple=False)
                 ),
                 vol.Optional(
                     CONF_OFF_PRESET,

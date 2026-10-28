@@ -11,11 +11,7 @@
           "season_switch": "Summer/Winter Switch (optional)",
           "season_invert": "Invert season switch logic (if enabled, ON=Summer instead of ON=Winter)",
           "slots_count": "Number of Daily Time Slots",
-          "knx_scene_in_casa": "KNX Scene 'At Home' Sensor (value 3, optional)",
-          "knx_scene_uscita": "KNX Scene 'Away' Sensor (value 2, optional)",
-          "knx_scene_notte": "KNX Scene 'Night' Sensor (value 4, optional)",
-          "knx_scene_vacanza": "KNX Scene 'Holiday' Sensor (value 5, optional)",
-          "knx_scene_sensor": "Unified KNX Scene Sensor (optional)",
+          "scene_sensor": "Scene / Presence Sensor (e.g. sensor.last_scene, optional)",
           "off_preset": "Preset for Off Mode",
           "restore_on_startup": "Sync and apply active slot on Home Assistant startup"
         }
@@ -39,11 +35,7 @@
           "season_switch": "Summer/Winter Switch (optional)",
           "season_invert": "Invert season switch logic",
           "slots_count": "Number of Daily Time Slots",
-          "knx_scene_in_casa": "KNX Scene 'At Home' Sensor (value 3, optional)",
-          "knx_scene_uscita": "KNX Scene 'Away' Sensor (value 2, optional)",
-          "knx_scene_notte": "KNX Scene 'Night' Sensor (value 4, optional)",
-          "knx_scene_vacanza": "KNX Scene 'Holiday' Sensor (value 5, optional)",
-          "knx_scene_sensor": "Unified KNX Scene Sensor (optional)",
+          "scene_sensor": "Scene / Presence Sensor (e.g. sensor.last_scene, optional)",
           "off_preset": "Preset for Off Mode",
           "restore_on_startup": "Sync and apply active slot on Home Assistant startup"
         }
@@ -76,7 +68,8 @@
         "name": "Zone status",
         "state": {
           "cronotermostato": "Chrono-thermostat (Scheduled)",
-          "scene_knx": "KNX Scenes",
+          "scene": "Scene / Presence",
+          "scene_knx": "Scene / Presence",
           "manuale": "Manual",
           "off": "Off (Building protection)"
         }
@@ -115,7 +108,8 @@
         "name": "Operating mode",
         "state": {
           "cronotermostato": "Chrono-thermostat (Scheduled)",
-          "scene_knx": "KNX Scenes",
+          "scene": "Scene / Presence",
+          "scene_knx": "Scene / Presence",
           "manuale": "Manual",
           "off": "Off (Building protection)"
         }
@@ -167,7 +161,7 @@
     },
     "set_zone_mode": {
       "name": "Set zone operating mode",
-      "description": "Switches zone operation between Chrono-thermostat, KNX Scenes, Manual or Off.",
+      "description": "Switches zone operation between Chrono-thermostat, Scene / Presence, Manual or Off.",
       "fields": {
         "zone_id": {
           "name": "Zone Name or ID",
@@ -175,7 +169,7 @@
         },
         "mode": {
           "name": "Operating Mode",
-          "description": "Desired operating mode (cronotermostato, scene_knx, manuale, off)."
+          "description": "Desired operating mode (cronotermostato, scene, manuale, off)."
         }
       }
     }
