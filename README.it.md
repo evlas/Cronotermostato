@@ -1,5 +1,6 @@
 # Cronotermostato Multizona - Integrazione Home Assistant
 
+[![Status: Work in Progress](https://img.shields.io/badge/Status-Work%20in%20Progress-orange.svg)]()
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://img.shields.io/github/v/release/evlas/Cronotermostato?color=blue&style=flat-square)](https://github.com/evlas/Cronotermostato/releases)
 [![Hassfest](https://github.com/evlas/Cronotermostato/actions/workflows/hassfest.yml/badge.svg)](https://github.com/evlas/Cronotermostato/actions/workflows/hassfest.yml)
@@ -8,6 +9,10 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
 
 🌐 *[English version](README.md) | Versione in italiano*
+
+> [!WARNING]
+> ### 🚧 Work in Progress / In fase di sviluppo
+> Questa integrazione è attualmente in fase attiva di sviluppo, test e ottimizzazione sul campo. Funzionalità, servizi ed entità potrebbero subire perfezionamenti e modifiche tra le varie versioni.
 
 **Cronotermostato Multizona** è un'integrazione personalizzata (*Custom Integration*) per **Home Assistant**, progettata come evoluzione completa e moderna dei vecchi package YAML e delle automazioni per la gestione del clima, delle fasce orarie e delle **Scene / Presenza**.
 
@@ -65,7 +70,7 @@ Gli stati del sensore vengono mappati in modo intelligente e case-insensitive su
 | Stato Rilevato (es. `sensor.ultima_scena`) | Preset Applicato | Significato |
 |---|---|---|
 | `In Casa`, `in_casa`, `Home`, `Comfort` | **`comfort`** | Presenza rilevata / Abitazione occupata |
-| `Uscita`, `uscita`, `Away`, `Eco` | **`away`** | Uscita temporanea / Economia energetica |
+| `Uscita`, `uscita`, `Away`, `Eco`, `Standby` | **`standby`** | Uscita temporanea / Economia energetica |
 | `Notte`, `notte`, `Night`, `Sleep`, `Economy` | **`economy`** | Modalità notturna / Riposo |
 | `Vacanza`, `vacanza`, `Holiday`, `Protezione` | **`building_protection`** | Assenza prolungata / Protezione antigelo |
 

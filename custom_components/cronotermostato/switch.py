@@ -143,12 +143,10 @@ class CronotermostatoSecondarySummerSwitch(CronotermostatoBaseSwitch):
         return self.manager.secondary_participates_summer
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        self.manager.secondary_participates_summer = True
-        self.manager._notify_listeners()
+        await self.manager.async_set_secondary_participates_summer(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        self.manager.secondary_participates_summer = False
-        self.manager._notify_listeners()
+        await self.manager.async_set_secondary_participates_summer(False)
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

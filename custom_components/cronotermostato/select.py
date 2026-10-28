@@ -11,7 +11,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DEFAULT_PRESET_OPTIONS, DOMAIN, PRESET_NONE, ZONE_MODES
+from .const import DEFAULT_PRESET_OPTIONS, DOMAIN, PRESET_COMFORT, ZONE_MODES
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -111,19 +111,24 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
         )
 
     @property
+    def options(self) -> list[str]:
+        """Restituisce le modalità preset supportate dai termostati della zona."""
+        return self.manager.get_supported_preset_modes()
+
+    @property
     def current_option(self) -> str:
         """Restituisce la modalità attualmente selezionata per la fascia."""
         slot = self.manager.slots.get(self.slot_index)
-        if slot:
-            val = slot.preset.lower() if slot.preset else PRESET_NONE
-            if val in self._attr_options:
+        if slot and slot.preset:
+            val = slot.preset.lower()
+            if val in self.options:
                 return val
-        return PRESET_NONE
+        return self.options[0] if self.options else PRESET_COMFORT
 
     async def async_select_option(self, option: str) -> None:
         """Imposta una nuova modalità per la fascia."""
         slot = self.manager.slots.get(self.slot_index)
-        if slot and option in self._attr_options:
+        if slot and option in self.options:
             slot.preset = option.lower()
             self.manager._notify_listeners()
             self.async_write_ha_state()
@@ -136,7 +141,7 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
         last_state = await self.async_get_last_state()
         if last_state and last_state.state:
             val = last_state.state.lower()
-            if val in self._attr_options:
+            if val in self.options or val in DEFAULT_PRESET_OPTIONS:
                 slot = self.manager.slots.get(self.slot_index)
                 if slot:
                     slot.preset = val

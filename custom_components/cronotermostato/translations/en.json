@@ -45,14 +45,10 @@
   "selector": {
     "preset_options": {
       "options": {
-        "none": "None (Skip slot)",
         "comfort": "Comfort",
         "standby": "Standby",
         "economy": "Economy",
-        "building_protection": "Building Protection (Antifreeze)",
-        "away": "Away",
-        "eco": "Eco",
-        "boost": "Boost"
+        "building_protection": "Building Protection (Antifreeze)"
       }
     }
   },
@@ -155,7 +151,7 @@
         },
         "preset": {
           "name": "Preset / Mode",
-          "description": "Target mode (e.g. comfort, standby, economy, building_protection, away, eco, boost, none)."
+          "description": "Target mode (comfort, standby, economy, building_protection)."
         }
       }
     },

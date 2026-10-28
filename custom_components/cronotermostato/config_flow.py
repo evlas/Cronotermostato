@@ -138,13 +138,10 @@ class CronotermostatoOptionsFlowHandler(config_entries.OptionsFlow):
         """Form per aggiornare le opzioni della zona."""
         errors: dict[str, str] = {}
         entry = self.config_entry
-        data = entry.data
+        data = {**entry.data, **entry.options}
 
         if user_input is not None:
-            new_data = dict(entry.data)
-            new_data.update(user_input)
-            self.hass.config_entries.async_update_entry(entry, data=new_data)
-            return self.async_create_entry(title="", data={})
+            return self.async_create_entry(title="", data=user_input)
 
         schema_dict: dict[Any, Any] = {
             vol.Required(
@@ -184,7 +181,7 @@ class CronotermostatoOptionsFlowHandler(config_entries.OptionsFlow):
             )
         ] = bool
 
-        current_slots = int(data.get(CONF_SLOTS_COUNT, DEFAULT_SLOTS_COUNT))
+        current_slots = int(float(data.get(CONF_SLOTS_COUNT, DEFAULT_SLOTS_COUNT)))
         schema_dict[
             vol.Required(
                 CONF_SLOTS_COUNT,

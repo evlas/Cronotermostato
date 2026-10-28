@@ -84,6 +84,8 @@ class CronotermostatoActiveSlotSensor(CronotermostatoBaseSensor):
             ),
             "controlled_climates": self.manager.get_target_climates(),
             "season": "winter" if self.manager.is_winter() else "summer",
+            "season_switch": self.manager.season_switch,
+            "season_invert": self.manager.season_invert,
         }
 
 

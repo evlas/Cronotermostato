@@ -1,5 +1,6 @@
 # Multi-Zone Chrono-thermostat - Home Assistant Integration
 
+[![Status: Work in Progress](https://img.shields.io/badge/Status-Work%20in%20Progress-orange.svg)]()
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://img.shields.io/github/v/release/evlas/Cronotermostato?color=blue&style=flat-square)](https://github.com/evlas/Cronotermostato/releases)
 [![Hassfest](https://github.com/evlas/Cronotermostato/actions/workflows/hassfest.yml/badge.svg)](https://github.com/evlas/Cronotermostato/actions/workflows/hassfest.yml)
@@ -8,6 +9,10 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
 
 🌐 *English version | [Versione in italiano](README.it.md)*
+
+> [!WARNING]
+> ### 🚧 Work in Progress
+> This integration is currently under active development, real-world testing, and ongoing optimization. Features, entities, and services may evolve across revisions.
 
 **Multi-Zone Chrono-thermostat** (*Cronotermostato Multizona*) is an advanced custom integration for **Home Assistant**, designed to evolve legacy YAML packages and automations into an elegant, reliable, and multi-zone climate controller with native **Scene / Presence** support.
 
@@ -50,7 +55,7 @@ Sensor states are mapped case-insensitively to standard HVAC presets:
 | Detected State (e.g. `sensor.last_scene`) | Applied Preset | Meaning |
 |---|---|---|
 | `In Casa`, `in_casa`, `Home`, `Comfort` | **`comfort`** | Occupants at home |
-| `Uscita`, `uscita`, `Away`, `Eco` | **`away`** | Leaving home temporarily |
+| `Uscita`, `uscita`, `Away`, `Eco`, `Standby` | **`standby`** | Leaving home temporarily |
 | `Notte`, `notte`, `Night`, `Sleep`, `Economy` | **`economy`** | Sleeping / Night mode |
 | `Vacanza`, `vacanza`, `Holiday`, `Protezione` | **`building_protection`** | Prolonged absence / Freeze protection |
 

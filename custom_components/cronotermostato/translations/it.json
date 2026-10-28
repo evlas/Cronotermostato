@@ -45,14 +45,10 @@
   "selector": {
     "preset_options": {
       "options": {
-        "none": "Nessuno (Salta fascia)",
         "comfort": "Comfort",
         "standby": "Standby",
         "economy": "Economy",
-        "building_protection": "Protezione Edificio (Antigelo)",
-        "away": "Away (Fuori Casa)",
-        "eco": "Eco",
-        "boost": "Boost"
+        "building_protection": "Protezione Edificio (Antigelo)"
       }
     }
   },
@@ -155,7 +151,7 @@
         },
         "preset": {
           "name": "Modalità / Preset",
-          "description": "Modalità desiderata (es. comfort, standby, economy, building_protection, away, eco, boost, none)."
+          "description": "Modalità desiderata (comfort, standby, economy, building_protection)."
         }
       }
     },

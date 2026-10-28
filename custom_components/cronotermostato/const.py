@@ -64,22 +64,18 @@ PRESET_ECO = "eco"
 PRESET_BOOST = "boost"
 
 DEFAULT_PRESET_OPTIONS = [
-    PRESET_NONE,
     PRESET_COMFORT,
     PRESET_STANDBY,
     PRESET_ECONOMY,
     PRESET_BUILDING_PROTECTION,
-    PRESET_AWAY,
-    PRESET_ECO,
-    PRESET_BOOST,
 ]
 
 # Mappatura universale sensore di scena/presenza (ad es. sensor.ultima_scena)
 SCENE_PRESET_MAPPING: dict[str, list[str]] = {
     PRESET_COMFORT: ["in casa", "in_casa", "home", "comfort"],
-    PRESET_AWAY: ["uscita", "away", "eco"],
+    PRESET_STANDBY: ["uscita", "away", "standby", "eco"],
     PRESET_ECONOMY: ["notte", "night", "sleep", "economy"],
-    PRESET_BUILDING_PROTECTION: ["vacanza", "holiday", "protezione"],
+    PRESET_BUILDING_PROTECTION: ["vacanza", "holiday", "protezione", "building_protection"],
 }
 
 DEFAULT_OFF_PRESET = PRESET_BUILDING_PROTECTION

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from datetime import datetime, time, timedelta
 import logging
@@ -37,11 +38,11 @@ from .const import (
     MODE_MANUALE,
     MODE_OFF,
     MODE_SCENE,
-    PRESET_AWAY,
     PRESET_BUILDING_PROTECTION,
     PRESET_COMFORT,
     PRESET_ECONOMY,
     PRESET_NONE,
+    PRESET_STANDBY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,26 +74,28 @@ class CronotermostatoZoneManager:
         self.hass = hass
         self.entry = entry
 
-        # Configurazione base
-        self.zone_name: str = entry.data.get(CONF_ZONE_NAME, DEFAULT_ZONE_NAME)
-        self.climate_entities: list[str] = entry.data.get(CONF_CLIMATE_ENTITIES, [])
-        self.secondary_climate_entities: list[str] = entry.data.get(CONF_SECONDARY_CLIMATE_ENTITIES, [])
-        self.season_switch: str | None = entry.data.get(CONF_SEASON_SWITCH)
-        self.season_invert: bool = entry.data.get(CONF_SEASON_INVERT, DEFAULT_SEASON_INVERT)
-        self.slots_count: int = int(entry.data.get(CONF_SLOTS_COUNT, DEFAULT_SLOTS_COUNT))
-        self.restore_on_startup: bool = entry.data.get(CONF_RESTORE_ON_STARTUP, DEFAULT_RESTORE_ON_STARTUP)
-        self.off_preset: str = entry.data.get(CONF_OFF_PRESET, DEFAULT_OFF_PRESET)
+        # Configurazione base (unione dati iniziali e opzioni configurate)
+        config = {**entry.data, **entry.options}
+        self.zone_name: str = config.get(CONF_ZONE_NAME, DEFAULT_ZONE_NAME)
+        self.climate_entities: list[str] = config.get(CONF_CLIMATE_ENTITIES, [])
+        self.secondary_climate_entities: list[str] = config.get(CONF_SECONDARY_CLIMATE_ENTITIES, [])
+        self.season_switch: str | None = config.get(CONF_SEASON_SWITCH)
+        self.season_invert: bool = bool(config.get(CONF_SEASON_INVERT, DEFAULT_SEASON_INVERT))
+        self.slots_count: int = int(float(config.get(CONF_SLOTS_COUNT, DEFAULT_SLOTS_COUNT)))
+        self.restore_on_startup: bool = bool(config.get(CONF_RESTORE_ON_STARTUP, DEFAULT_RESTORE_ON_STARTUP))
+        self.off_preset: str = config.get(CONF_OFF_PRESET, DEFAULT_OFF_PRESET)
 
         # Configurazione sensore Scena / Presenza unificato
-        self.scene_sensor: str | None = entry.data.get(
-            CONF_SCENE_SENSOR, entry.data.get(CONF_KNX_SCENE_SENSOR)
+        self.scene_sensor: str | None = config.get(
+            CONF_SCENE_SENSOR, config.get(CONF_KNX_SCENE_SENSOR)
         )
+        self.knx_scene_sensor: str | None = config.get(CONF_KNX_SCENE_SENSOR)
 
         # Sensori KNX specifici (mantenuti per compatibilità se configurati in precedenza)
-        self.knx_scene_in_casa: str | None = entry.data.get(CONF_KNX_SCENE_IN_CASA)
-        self.knx_scene_uscita: str | None = entry.data.get(CONF_KNX_SCENE_USCITA)
-        self.knx_scene_notte: str | None = entry.data.get(CONF_KNX_SCENE_NOTTE)
-        self.knx_scene_vacanza: str | None = entry.data.get(CONF_KNX_SCENE_VACANZA)
+        self.knx_scene_in_casa: str | None = config.get(CONF_KNX_SCENE_IN_CASA)
+        self.knx_scene_uscita: str | None = config.get(CONF_KNX_SCENE_USCITA)
+        self.knx_scene_notte: str | None = config.get(CONF_KNX_SCENE_NOTTE)
+        self.knx_scene_vacanza: str | None = config.get(CONF_KNX_SCENE_VACANZA)
 
         # Modalità operativa di zona
         self.mode: str = MODE_CRONOTERMOSTATO
@@ -115,6 +118,8 @@ class CronotermostatoZoneManager:
         self._listeners: list[Callable[[], None]] = []
         self._unsub_timer: CALLBACK_TYPE | None = None
         self._unsub_scenes: CALLBACK_TYPE | None = None
+        self._unsub_season: CALLBACK_TYPE | None = None
+        self._unsub_climates: CALLBACK_TYPE | None = None
 
     async def async_setup(self) -> None:
         """Avvia il monitoraggio temporale e delle scene della zona."""
@@ -145,7 +150,25 @@ class CronotermostatoZoneManager:
                 tracked_entities,
             )
 
-        # 3. Allineamento all'avvio
+        # 3. Registra listener per lo switch cambio stagione Estate/Inverno
+        if self.season_switch:
+            self._unsub_season = async_track_state_change_event(
+                self.hass, [self.season_switch], self._async_season_changed
+            )
+            _LOGGER.debug(
+                "Zona '%s': Monitoraggio Switch Stagione attivo su: %s",
+                self.zone_name,
+                self.season_switch,
+            )
+
+        # 4. Registra listener per monitorare la disponibilità dei termostati climate
+        all_climates = list(dict.fromkeys(self.climate_entities + self.secondary_climate_entities))
+        if all_climates:
+            self._unsub_climates = async_track_state_change_event(
+                self.hass, all_climates, self._async_climates_changed
+            )
+
+        # 5. Allineamento all'avvio
         if self.restore_on_startup:
             self.hass.async_create_task(self._async_apply_current_slot(is_startup=True))
 
@@ -157,6 +180,12 @@ class CronotermostatoZoneManager:
         if self._unsub_scenes:
             self._unsub_scenes()
             self._unsub_scenes = None
+        if self._unsub_season:
+            self._unsub_season()
+            self._unsub_season = None
+        if self._unsub_climates:
+            self._unsub_climates()
+            self._unsub_climates = None
         self._listeners.clear()
 
     @callback
@@ -197,6 +226,27 @@ class CronotermostatoZoneManager:
                 targets.extend(self.secondary_climate_entities)
 
         return list(dict.fromkeys(targets))
+
+    def get_supported_preset_modes(self) -> list[str]:
+        """Restituisce solo i 4 preset standard supportati (comfort, standby, economy, building_protection)."""
+        allowed = [PRESET_COMFORT, PRESET_STANDBY, PRESET_ECONOMY, PRESET_BUILDING_PROTECTION]
+        all_climates = list(dict.fromkeys(self.climate_entities + self.secondary_climate_entities))
+        detected_presets: list[str] = []
+
+        for entity_id in all_climates:
+            state = self.hass.states.get(entity_id)
+            if state and "preset_modes" in state.attributes:
+                modes = state.attributes.get("preset_modes")
+                if isinstance(modes, list):
+                    for m in modes:
+                        m_str = str(m).strip()
+                        if m_str in allowed and m_str not in detected_presets:
+                            detected_presets.append(m_str)
+
+        if detected_presets:
+            return [p for p in allowed if p in detected_presets]
+
+        return allowed
 
     async def async_set_crono_enabled(self, enabled: bool) -> None:
         """Abilita o disabilita il cronotermostato per la zona."""
@@ -293,6 +343,72 @@ class CronotermostatoZoneManager:
                 await self.async_apply_slot(slot_num)
                 break
 
+    async def _async_climates_changed(self, event: Event[EventStateChangedData]) -> None:
+        """Notifica i componenti quando un'entità climate si aggiorna o diventa disponibile."""
+        self._notify_listeners()
+
+    async def _async_season_changed(self, event: Event[EventStateChangedData]) -> None:
+        """Gestisce il cambio stato dello switch cambio stagione Estate/Inverno."""
+        new_state = event.data.get("new_state")
+        old_state = event.data.get("old_state")
+        if not new_state or new_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            return
+
+        if old_state and old_state.state == new_state.state:
+            return
+
+        current_season = "Inverno" if self.is_winter() else "Estate"
+        _LOGGER.info(
+            "Zona '%s': Cambio stagione rilevato da '%s' (Nuova stagione: %s)",
+            self.zone_name,
+            self.season_switch,
+            current_season,
+        )
+
+        # 1. Reset di sicurezza: tutti i termostati della zona vengono posti a building_protection
+        all_climates = list(dict.fromkeys(self.climate_entities + self.secondary_climate_entities))
+        if all_climates:
+            try:
+                _LOGGER.info(
+                    "Zona '%s': Cambio stagione -> Reset di tutti i termostati su '%s': %s",
+                    self.zone_name,
+                    PRESET_BUILDING_PROTECTION,
+                    all_climates,
+                )
+                await self.hass.services.async_call(
+                    "climate",
+                    "set_preset_mode",
+                    {
+                        "entity_id": all_climates,
+                        "preset_mode": PRESET_BUILDING_PROTECTION,
+                    },
+                    blocking=True,
+                )
+                self.last_applied_time = dt_util.now()
+                self.last_applied_preset = PRESET_BUILDING_PROTECTION
+                self.last_action_message = (
+                    f"Cambio stagione ({current_season}): reset su '{PRESET_BUILDING_PROTECTION}'"
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Zona '%s': Errore reset building_protection durante cambio stagione: %s",
+                    self.zone_name,
+                    err,
+                )
+
+        # Breve pausa (1 secondo) per consentire al bus KNX e agli attuatori di recepire il reset
+        await asyncio.sleep(1)
+
+        # 2. Se il cronotermostato è attivato, applica la modalità relativa all'ora corrente
+        if self.crono_enabled and self.mode == MODE_CRONOTERMOSTATO:
+            await self._async_apply_current_slot()
+        elif self.mode == MODE_SCENE:
+            await self._async_check_and_apply_current_scene()
+        elif self.mode == MODE_OFF:
+            self.last_action_message = f"Cambio stagione: zona spenta ({PRESET_BUILDING_PROTECTION})"
+
+        self._notify_listeners()
+
     async def _async_scene_changed(self, event: Event[EventStateChangedData]) -> None:
         """Gestisce il cambio stato del sensore Scena / Presenza."""
         if self.mode != MODE_SCENE and self.crono_enabled:
@@ -319,9 +435,9 @@ class CronotermostatoZoneManager:
             if st_lower in ("in casa", "in_casa", "home", "comfort"):
                 preset_to_apply = PRESET_COMFORT
                 source_scene = f"Scena '{state_val}' (Comfort)"
-            elif st_lower in ("uscita", "away", "eco"):
-                preset_to_apply = PRESET_AWAY
-                source_scene = f"Scena '{state_val}' (Away)"
+            elif st_lower in ("uscita", "away", "standby", "eco"):
+                preset_to_apply = PRESET_STANDBY
+                source_scene = f"Scena '{state_val}' (Standby)"
             elif st_lower in ("notte", "night", "sleep", "economy"):
                 preset_to_apply = PRESET_ECONOMY
                 source_scene = f"Scena '{state_val}' (Economy)"
@@ -334,7 +450,7 @@ class CronotermostatoZoneManager:
             preset_to_apply = PRESET_COMFORT
             source_scene = "Scena In Casa (3)"
         elif entity_id == self.knx_scene_uscita and state_val == "2":
-            preset_to_apply = PRESET_AWAY
+            preset_to_apply = PRESET_STANDBY
             source_scene = "Scena Uscita (2)"
         elif entity_id == self.knx_scene_notte and state_val == "4":
             preset_to_apply = PRESET_ECONOMY
