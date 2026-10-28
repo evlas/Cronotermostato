@@ -9,13 +9,14 @@
 
 🌐 *[English version](README.md) | Versione in italiano*
 
-**Cronotermostato Multizona** è un'integrazione personalizzata (*Custom Integration*) per **Home Assistant**, progettata come evoluzione completa del package YAML originale e delle automazioni correlate per la gestione del clima, delle fasce orarie e delle **Scene / Presenza**.
+**Cronotermostato Multizona** è un'integrazione personalizzata (*Custom Integration*) per **Home Assistant**, progettata come evoluzione completa e moderna dei vecchi package YAML e delle automazioni per la gestione del clima, delle fasce orarie e delle **Scene / Presenza**.
 
 Elimina completamente la necessità di mantenere decine di automazioni ed entità ausiliarie (*input_datetime*, *input_select*, *input_boolean*), integrando nativamente:
-1. **Programmazione oraria multizona** a fasce giornaliere configurabili.
-2. **Integrazione diretta con Scene / Presenza** (In Casa, Uscita, Notte, Vacanza) senza automazioni esterne.
+1. **Programmazione oraria multizona** a fasce giornaliere configurabili da 1 a 10 slot.
+2. **Integrazione universale con sensori di Scena e Presenza** (es. `sensor.ultima_scena`) senza automazioni esterne.
 3. **Gestione Clima OFF e Protezione Edificio** (*Building Protection / Antigelo*).
-4. **Allineamento automatico all'avvio** e cambio stagione intelligente.
+4. **Allineamento automatico all'avvio** e cambio stagione intelligente (Inverno/Estate).
+5. **Gestione differenziata zone secondarie / notte** (con esclusione selettiva dal raffrescamento estivo).
 
 ---
 
@@ -25,7 +26,7 @@ Elimina completamente la necessità di mantenere decine di automazioni ed entit�
 |---|---|---|
 | **Gestione Zone** | Rigida (solo Piano Terra `pt` e Seminterrato `psi`) | **Dinamica e illimitata**: configurazione via UI (*Config Flow*) |
 | **Entità Clima** | Hardcoded (`climate.salotto`, `group.climapt`, ecc.) | **Selezionabili da menu a tendina** per ogni zona |
-| **Automazioni eliminate** | **56 automazioni in totale** (40 nel package + 8 scene KNX + 8 auto/manual) | **0 automazioni esterne**: motore a stati integrato in Python |
+| **Automazioni eliminate** | **56 automazioni in totale** (40 nel package + 8 scene + 8 auto/manual) | **0 automazioni esterne**: motore a stati integrato in Python |
 | **Gestione Scene / Presenza** | 8 automazioni separate sensibili allo stato di `crono` | **Ascolto e cambio preset nativo**: gestito direttamente dal coordinator |
 | **Spegnimento Clima** | Automazioni con forzatura di `building_protection` | **Modalità OFF nativa**: invio automatico del preset di sicurezza |
 | **Allineamento all'avvio** | Mancante (attendeva il prossimo orario) | **Automatico**: calcola e applica la fascia attiva all'avvio di HA |
@@ -43,11 +44,11 @@ Ciascuna zona dispone di un selettore di modalità operativa che coordina il com
 - **`cronotermostato` (Programmazione Oraria)**:
   - Il motore schedulatore applica automaticamente i preset definiti nelle fasce orarie della giornata.
   - All'attivazione calcola immediatamente la fascia oraria corrente e la applica ai termostati.
-- **`scene` (Controllo da Scene / Presenza)**:
-  - Sospende la programmazione oraria e si mette in ascolto dei sensori KNX configurati.
-  - Applica immediatamente il preset corrispondente alla scena KNX rilevata.
+- **`scene` (Controllo da Scena / Presenza)**:
+  - Sospende la programmazione oraria e si mette in ascolto del sensore scena/presenza configurato (es. `sensor.ultima_scena`).
+  - Applica immediatamente il preset corrispondente allo stato rilevato.
 - **`manuale` (Controllo Libero)**:
-  - Sospende ogni schedulazione e l'ascolto delle scene KNX, lasciando l'utente libero di impostare i termostati manualmente o da app/tastierino.
+  - Sospende ogni schedulazione e l'ascolto delle scene, lasciando l'utente libero di impostare i termostati manualmente o da tastierino/app.
 - **`off` (Zona Spenta / Protezione Edificio)**:
   - Invia immediatamente il preset di sicurezza (`building_protection` o personalizzato) a tutti i termostati della zona e disattiva ogni schedulazione.
 
@@ -57,7 +58,7 @@ Ciascuna zona dispone di un selettore di modalità operativa che coordina il com
 
 ## 🏛️ Integrazione Nativa con Sensore Scena / Presenza
 
-L'integrazione supporta nativamente qualsiasi sensore unificato di scena o presenza (es. `sensor.ultima_scena`), slegando completamente la logica da standard hardware specifici (KNX, Zigbee, Z-Wave o helper Home Assistant).
+L'integrazione supporta nativamente qualsiasi sensore unificato di scena o presenza (ad esempio `sensor.ultima_scena`), slegando completamente la logica da standard hardware specifici (KNX, Zigbee, Z-Wave o helper Home Assistant).
 
 Gli stati del sensore vengono mappati in modo intelligente e case-insensitive sui preset climatici:
 
@@ -67,6 +68,26 @@ Gli stati del sensore vengono mappati in modo intelligente e case-insensitive su
 | `Uscita`, `uscita`, `Away`, `Eco` | **`away`** | Uscita temporanea / Economia energetica |
 | `Notte`, `notte`, `Night`, `Sleep`, `Economy` | **`economy`** | Modalità notturna / Riposo |
 | `Vacanza`, `vacanza`, `Holiday`, `Protezione` | **`building_protection`** | Assenza prolungata / Protezione antigelo |
+
+---
+
+## ⚙️ Configurazione via Interfaccia Utente
+
+L'aggiunta e la modifica delle zone avviene interamente tramite l'interfaccia grafica di Home Assistant (*Config Flow* e *Options Flow*):
+
+1. Vai su **Impostazioni** > **Dispositivi e Servizi** > **Aggiungi Integrazione**.
+2. Cerca **Cronotermostato Multizona**.
+3. Compila i parametri della zona:
+   - **Nome della Zona**: es. `Piano Terra`, `Piano Seminterrato`, `Zona Notte`.
+   - **Termostati Principali (`climate.*`)**: seleziona le entità termostato da controllare.
+   - **Termostati Secondari / Notte (`climate.*`)**: *(Opzionale)* termostati delle camere che possono essere esclusi dal raffrescamento estivo tramite lo switch dedicato.
+   - **Switch Estate/Inverno**: *(Opzionale)* seleziona lo switch o input_boolean di cambio stagione (con opzione di inversione logica).
+   - **Numero di Fasce Orarie**: scegli quante fasce orarie giornaliere attivare (da 1 a 10, predefinito: `5`).
+   - **Sensore Scena / Presenza**: *(Opzionale)* seleziona il sensore di stato scena (es. `sensor.ultima_scena`).
+   - **Preset Spento/OFF**: preset inviato ai termostati quando la zona è in OFF (predefinito: `building_protection`).
+   - **Allineamento all'avvio**: sincronizza e applica automaticamente la fascia attiva al riavvio di Home Assistant.
+
+Puoi modificare tutti questi parametri in qualunque momento cliccando su **Configura** nella card dell'integrazione.
 
 ---
 

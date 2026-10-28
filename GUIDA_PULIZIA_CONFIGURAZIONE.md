@@ -57,11 +57,7 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
   - `climate.camera_pt` *(questo è il termostato comandato dallo switch Raffrescamento Zona Notte!)*
 - **Switch Estate/Inverno**: `switch.inverno_estate` (lascia `Inverti logica` disabilitato: ON=Inverno)
 - **Numero Fasce**: `5`
-- **Sensori Scene / Presenza**:
-  - *In Casa (3)*: `sensor.sceneknxincasa`
-  - *Uscita (2)*: `sensor.sceneknxuscita`
-  - *Notte (4)*: `sensor.sceneknxnotte`
-  - *Vacanza (5)*: `sensor.sceneknxvacanza`
+- **Sensore Scena / Presenza**: `sensor.ultima_scena` (rileva automaticamente *In Casa*, *Uscita*, *Notte*, *Vacanza*)
 - **Preset Spento/OFF**: `building_protection`
 
 ### 🔹 Zona 2: Piano Seminterrato
@@ -76,7 +72,7 @@ Prima di cancellare la vecchia configurazione, installa l'integrazione e crea le
   - `climate.camera_ospiti`
 - **Switch Estate/Inverno**: `switch.inverno_estate`
 - **Numero Fasce**: `5`
-- **Sensori Scene / Presenza**: gli stessi sensori KNX usati per il PT.
+- **Sensore Scena / Presenza**: `sensor.ultima_scena` (stesso sensore unificato di casa).
 - **Preset Spento/OFF**: `building_protection`
 
 ---
@@ -188,7 +184,7 @@ Nelle tue card della plancia:
    - Verifica che `sensor.cronotermostato_piano_terra_fascia_attiva` riporti lo slot corrente.
 2. [ ] **Test Scene / Presenza da Tastiera/Pulsantiera**:
    - Imposta la modalità su `Scene / Presenza` (oppure spegni lo switch `crono`).
-   - Attiva le scene KNX e verifica il cambio dei preset sui termostati.
+   - Verifica che modificando lo stato di `sensor.ultima_scena` (In Casa, Uscita, Notte, Vacanza), i termostati assumano istantaneamente i rispettivi preset (`comfort`, `away`, `economy`, `building_protection`).
 3. [ ] **Test Switch Raffrescamento Notte**:
    - Con switch disattivato in estate, verifica che i termostati secondari (camere) non ricevano il cambio preset.
 4. [ ] **Test Tasto "Update Setpoint PT / PSI"**:

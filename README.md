@@ -21,8 +21,8 @@ It completely eliminates the need to maintain dozens of complex automations and 
 |---|---|---|
 | **Zones** | Hardcoded (only Ground Floor `pt` & Basement `psi`) | **Unlimited & Dynamic**: Config Flow UI |
 | **Climate Entities** | Hardcoded groups/entities | **Dropdown selectors** per zone |
-| **Automations removed** | **56 total automations** (40 package + 8 KNX scenes + 8 auto/manual) | **0 external automations**: built-in async state machine |
-| **KNX Scene Integration** | 8 automations conditioned on `crono == off` | **Native event listener**: automatic preset sync |
+| **Automations removed** | **56 total automations** (40 package + 8 scenes + 8 auto/manual) | **0 external automations**: built-in async state machine |
+| **Scene & Presence Integration** | 8 automations conditioned on `crono == off` | **Native event listener**: automatic preset sync |
 | **Climate Off / Antifreeze** | External automations forcing building protection | **Native Off Mode**: automated fallback preset |
 | **Startup Alignment** | Missing (waited for next scheduled trigger) | **Instant automatic alignment** on HA restart |
 | **Time Pickers** | Generic `input_datetime` helpers | Native Home Assistant **`time`** platform |
@@ -35,20 +35,42 @@ It completely eliminates the need to maintain dozens of complex automations and 
 
 Each zone provides a unified operating mode selector:
 - **`cronotermostato` (Scheduled Chrono-thermostat)**: Evaluates active time slots and applies scheduled presets.
-- **`scene` (KNX Scene Control)**: Halts the time schedule and listens directly to KNX scene sensors.
+- **`scene` (Scene / Presence Control)**: Halts the time schedule and listens directly to the configured scene/presence sensor (e.g. `sensor.last_scene`).
 - **`manuale` (Manual)**: Suspends all automation, leaving thermostats open for local/manual control.
 - **`off` (Building Protection)**: Sends safety preset (`building_protection` or custom) to all thermostats in the zone.
 
 ---
 
-## 🏛️ Direct KNX Scene Mapping
+## 🏛️ Native Scene & Presence Sensor Integration
 
-| KNX Scene Sensor | Value | Applied Preset | Description |
-|---|---|---|---|
-| `knx_scene_in_casa` | `3` | `comfort` | Occupants at home |
-| `knx_scene_uscita` | `2` | `away` | Leaving home temporarily |
-| `knx_scene_notte` | `4` | `economy` | Night time |
-| `knx_scene_vacanza` | `5` | `building_protection` | Long absence / freeze protection |
+The integration natively supports any unified scene or presence sensor (e.g., `sensor.ultima_scena`), uncoupling your climate setup from vendor-specific protocols (KNX, Zigbee, Z-Wave or helper templates).
+
+Sensor states are mapped case-insensitively to standard HVAC presets:
+
+| Detected State (e.g. `sensor.last_scene`) | Applied Preset | Meaning |
+|---|---|---|
+| `In Casa`, `in_casa`, `Home`, `Comfort` | **`comfort`** | Occupants at home |
+| `Uscita`, `uscita`, `Away`, `Eco` | **`away`** | Leaving home temporarily |
+| `Notte`, `notte`, `Night`, `Sleep`, `Economy` | **`economy`** | Sleeping / Night mode |
+| `Vacanza`, `vacanza`, `Holiday`, `Protezione` | **`building_protection`** | Prolonged absence / Freeze protection |
+
+---
+
+## ⚙️ Configuration via UI
+
+Setting up and modifying zones is done entirely through the Home Assistant UI (*Config Flow* and *Options Flow*):
+
+1. Go to **Settings** > **Devices & Services** > **Add Integration**.
+2. Search for **Cronotermostato Multizona**.
+3. Configure your zone parameters:
+   - **Zone Name**: e.g., `Ground Floor`, `Basement`, `Night Zone`.
+   - **Main Thermostats (`climate.*`)**: select the thermostats controlled by this zone.
+   - **Secondary / Night Thermostats (`climate.*`)**: *(Optional)* bedroom thermostats that can be excluded from summer cooling via the dedicated switch.
+   - **Summer/Winter Switch**: *(Optional)* season switch entity (with invert logic toggle).
+   - **Daily Time Slots**: number of daily slots (1 to 10, default: `5`).
+   - **Scene / Presence Sensor**: *(Optional)* unified scene state sensor (e.g. `sensor.ultima_scena`).
+   - **Off Mode Preset**: preset applied when zone is OFF (default: `building_protection`).
+   - **Startup Alignment**: auto-sync active slot on Home Assistant reboot.
 
 ---
 
