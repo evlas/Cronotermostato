@@ -157,13 +157,6 @@ data:
 
 ---
 
-## 🧹 Pulizia della Vecchia Configurazione
-
-Per la procedura dettagliata di rimozione del vecchio package YAML e delle automazioni ridondanti, consulta il documento dedicato:
-👉 [Guida Pulizia Configurazione](GUIDA_PULIZIA_CONFIGURAZIONE.md)
-
----
-
 ## 📄 Licenza
 
 Rilasciato sotto licenza [GNU General Public License v3.0](LICENSE).

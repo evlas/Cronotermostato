@@ -97,13 +97,6 @@ Setting up and modifying zones is done entirely through the Home Assistant UI (*
 
 ---
 
-## 🧹 Legacy Configuration Cleanup Guide
-
-For step-by-step instructions on decommissioning the legacy package and automations, see:
-👉 [Cleanup Guide (Italian)](GUIDA_PULIZIA_CONFIGURAZIONE.md)
-
----
-
 ## 📄 License
 
 Released under [GNU General Public License v3.0](LICENSE).
