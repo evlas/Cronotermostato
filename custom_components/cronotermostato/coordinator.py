@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.const import (
+    EVENT_HOMEASSISTANT_STARTED,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+)
 from homeassistant.core import CALLBACK_TYPE, Event, EventStateChangedData, HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_change
 import homeassistant.util.dt as dt_util
 
@@ -34,6 +40,7 @@ from .const import (
     DEFAULT_SEASON_INVERT,
     DEFAULT_SLOTS_COUNT,
     DEFAULT_ZONE_NAME,
+    DOMAIN,
     MODE_CRONOTERMOSTATO,
     MODE_MANUALE,
     MODE_OFF,
@@ -69,10 +76,16 @@ class SlotData:
 class CronotermostatoZoneManager:
     """Gestisce la logica di controllo, le fasce orarie e le scene per una zona."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        version: str | None = None,
+    ) -> None:
         """Inizializza il manager della zona."""
         self.hass = hass
         self.entry = entry
+        self.version = str(version) if version is not None else "1.1.0"
 
         # Configurazione base (unione dati iniziali e opzioni configurate)
         config = {**entry.data, **entry.options}
@@ -120,6 +133,18 @@ class CronotermostatoZoneManager:
         self._unsub_scenes: CALLBACK_TYPE | None = None
         self._unsub_season: CALLBACK_TYPE | None = None
         self._unsub_climates: CALLBACK_TYPE | None = None
+        self._unsub_startup: CALLBACK_TYPE | None = None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Restituisce i metadati unificati del dispositivo di zona."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.entry.entry_id)},
+            name=f"Cronotermostato {self.zone_name}",
+            manufacturer="evlas",
+            model="Cronotermostato Multizona",
+            sw_version=self.version,
+        )
 
     async def async_setup(self) -> None:
         """Avvia il monitoraggio temporale e delle scene della zona."""
@@ -168,9 +193,28 @@ class CronotermostatoZoneManager:
                 self.hass, all_climates, self._async_climates_changed
             )
 
-        # 5. Allineamento all'avvio
+        # 5. Allineamento all'avvio (dopo che le entità RestoreEntity hanno ripristinato lo stato)
         if self.restore_on_startup:
-            self.hass.async_create_task(self._async_apply_current_slot(is_startup=True))
+            if self.hass.is_running:
+                self.hass.async_create_task(self._async_apply_startup_state())
+            else:
+                @callback
+                def _on_hass_started(_event: Event) -> None:
+                    self._unsub_startup = None
+                    self.hass.async_create_task(self._async_apply_startup_state())
+
+                self._unsub_startup = self.hass.bus.async_listen_once(
+                    EVENT_HOMEASSISTANT_STARTED, _on_hass_started
+                )
+
+    async def _async_apply_startup_state(self) -> None:
+        """Applica lo stato attivo all'avvio di Home Assistant o del componente."""
+        if self.mode == MODE_CRONOTERMOSTATO and self.crono_enabled and self.auto_enabled:
+            await self._async_apply_current_slot(is_startup=True)
+        elif self.mode == MODE_SCENE and self.auto_enabled:
+            await self._async_check_and_apply_current_scene()
+        elif self.mode == MODE_OFF:
+            await self.async_apply_preset(self.off_preset, "Avvio: Zona Disattivata (OFF)")
 
     async def async_unload(self) -> None:
         """Ferma i timer e pulisce le risorse."""
@@ -186,6 +230,9 @@ class CronotermostatoZoneManager:
         if self._unsub_climates:
             self._unsub_climates()
             self._unsub_climates = None
+        if self._unsub_startup:
+            self._unsub_startup()
+            self._unsub_startup = None
         self._listeners.clear()
 
     @callback
@@ -194,13 +241,14 @@ class CronotermostatoZoneManager:
         self._listeners.append(update_callback)
 
         def _remove_listener() -> None:
-            self._listeners.remove(update_callback)
+            if update_callback in self._listeners:
+                self._listeners.remove(update_callback)
 
         return _remove_listener
 
     def _notify_listeners(self) -> None:
         """Notifica tutti i listener registrati."""
-        for callback_fn in self._listeners:
+        for callback_fn in list(self._listeners):
             callback_fn()
 
     def is_winter(self) -> bool:
@@ -248,32 +296,6 @@ class CronotermostatoZoneManager:
 
         return allowed
 
-    async def async_set_crono_enabled(self, enabled: bool) -> None:
-        """Abilita o disabilita il cronotermostato per la zona."""
-        self.crono_enabled = enabled
-        if enabled:
-            self.mode = MODE_CRONOTERMOSTATO
-            await self._async_apply_current_slot()
-        else:
-            if self.mode == MODE_CRONOTERMOSTATO:
-                self.mode = MODE_OFF
-                await self.async_apply_preset(self.off_preset, "Cronotermostato disattivato (OFF)")
-        self._notify_listeners()
-
-    async def async_set_auto_enabled(self, enabled: bool) -> None:
-        """Abilita o disabilita la modalità automatica."""
-        self.auto_enabled = enabled
-        if enabled:
-            if self.mode == MODE_OFF:
-                self.mode = MODE_CRONOTERMOSTATO
-                await self._async_apply_current_slot()
-            elif self.mode == MODE_SCENE:
-                await self._async_check_and_apply_current_scene()
-        else:
-            self.mode = MODE_MANUALE
-            self.last_action_message = "Modalità Manuale attivata"
-        self._notify_listeners()
-
     async def async_set_secondary_participates_summer(self, participates: bool) -> None:
         """Imposta se la zona secondaria (es. zona notte) partecipa al raffrescamento estivo."""
         self.secondary_participates_summer = participates
@@ -286,9 +308,29 @@ class CronotermostatoZoneManager:
             await self._async_reapply_active_state("Aggiornamento partecipazione estiva")
         self._notify_listeners()
 
+    def set_restored_mode(self, mode: str) -> None:
+        """Sincronizza in memoria la modalità ripristinata da RestoreEntity senza inviare subito chiamate servizio."""
+        if mode == "scene_knx":
+            mode = MODE_SCENE
+        self.mode = mode
+        if mode == MODE_CRONOTERMOSTATO:
+            self.crono_enabled = True
+            self.auto_enabled = True
+        elif mode == MODE_SCENE:
+            self.crono_enabled = False
+            self.auto_enabled = True
+            self.active_slot = None
+        elif mode == MODE_OFF:
+            self.crono_enabled = False
+            self.auto_enabled = False
+            self.active_slot = None
+        elif mode == MODE_MANUALE:
+            self.crono_enabled = False
+            self.auto_enabled = False
+            self.active_slot = None
+
     async def async_set_mode(self, mode: str) -> None:
         """Cambia la modalità operativa globale della zona."""
-        # Supporto retrocompatibile se mode arriva come 'scene_knx'
         if mode == "scene_knx":
             mode = MODE_SCENE
 
@@ -303,7 +345,6 @@ class CronotermostatoZoneManager:
             self.crono_enabled = False
             self.auto_enabled = True
             self.active_slot = None
-            # Valuta lo stato attuale della scena
             await self._async_check_and_apply_current_scene()
 
         elif mode == MODE_OFF:

@@ -9,7 +9,6 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, ZONE_MODES
@@ -43,13 +42,7 @@ class CronotermostatoBaseSensor(SensorEntity):
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         self.manager = manager
         self.entry = entry
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=f"Cronotermostato {manager.zone_name}",
-            manufacturer="evlas",
-            model="Cronotermostato Multizona",
-            sw_version="1.0.0",
-        )
+        self._attr_device_info = manager.device_info
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

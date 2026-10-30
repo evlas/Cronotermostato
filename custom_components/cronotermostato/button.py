@@ -7,7 +7,6 @@ import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
@@ -42,13 +41,7 @@ class CronotermostatoApplyButton(ButtonEntity):
         self.manager = manager
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}_button_apply_now"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=f"Cronotermostato {manager.zone_name}",
-            manufacturer="evlas",
-            model="Cronotermostato Multizona",
-            sw_version="1.0.0",
-        )
+        self._attr_device_info = manager.device_info
 
     async def async_press(self) -> None:
         """Forza l'applicazione della fascia corrente."""

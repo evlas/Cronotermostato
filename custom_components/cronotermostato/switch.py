@@ -8,14 +8,12 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     DOMAIN,
     MODE_CRONOTERMOSTATO,
-    MODE_MANUALE,
     MODE_OFF,
     MODE_SCENE,
 )
@@ -51,13 +49,7 @@ class CronotermostatoBaseSwitch(RestoreEntity, SwitchEntity):
     def __init__(self, manager: CronotermostatoZoneManager, entry: ConfigEntry) -> None:
         self.manager = manager
         self.entry = entry
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=f"Cronotermostato {manager.zone_name}",
-            manufacturer="evlas",
-            model="Cronotermostato Multizona",
-            sw_version="1.0.0",
-        )
+        self._attr_device_info = manager.device_info
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -92,7 +84,7 @@ class CronotermostatoMasterSwitch(CronotermostatoBaseSwitch):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
-        if last_state:
+        if last_state and last_state.state in ("on", "off"):
             self.manager.crono_enabled = last_state.state == "on"
 
 
@@ -124,7 +116,7 @@ class CronotermostatoAutoSwitch(CronotermostatoBaseSwitch):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
-        if last_state:
+        if last_state and last_state.state in ("on", "off"):
             self.manager.auto_enabled = last_state.state == "on"
 
 
@@ -151,5 +143,5 @@ class CronotermostatoSecondarySummerSwitch(CronotermostatoBaseSwitch):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
-        if last_state:
+        if last_state and last_state.state in ("on", "off"):
             self.manager.secondary_participates_summer = last_state.state == "on"

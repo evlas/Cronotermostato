@@ -18,6 +18,7 @@ from .const import (
     ATTR_ZONE_ID,
     DEFAULT_PRESET_OPTIONS,
     DOMAIN,
+    MODE_CRONOTERMOSTATO,
     SERVICE_APPLY_NOW,
     SERVICE_SET_SLOT,
     SERVICE_SET_ZONE_MODE,
@@ -83,6 +84,9 @@ async def async_register_services(hass: HomeAssistant) -> None:
         if new_preset is not None:
             slot.preset = new_preset
 
+        if manager.mode == MODE_CRONOTERMOSTATO and manager.crono_enabled:
+            await manager._async_apply_current_slot()
+
         manager._notify_listeners()
         _LOGGER.info(
             "Zona '%s': Fascia %d aggiornata (Orario: %s, Preset: %s)",
@@ -118,6 +122,13 @@ async def async_register_services(hass: HomeAssistant) -> None:
         hass.services.async_register(
             DOMAIN, SERVICE_SET_ZONE_MODE, async_handle_set_zone_mode, schema=SCHEMA_SET_ZONE_MODE
         )
+
+
+def async_unregister_services(hass: HomeAssistant) -> None:
+    """Rimuove i servizi del dominio cronotermostato quando non ci sono più zone attive."""
+    for srv in (SERVICE_APPLY_NOW, SERVICE_SET_SLOT, SERVICE_SET_ZONE_MODE):
+        if hass.services.has_service(DOMAIN, srv):
+            hass.services.async_remove(DOMAIN, srv)
 
 
 def _find_manager(hass: HomeAssistant, zone_identifier: str):

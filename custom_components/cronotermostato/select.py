@@ -7,11 +7,10 @@ import logging
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DEFAULT_PRESET_OPTIONS, DOMAIN, PRESET_COMFORT, ZONE_MODES
+from .const import DEFAULT_PRESET_OPTIONS, DOMAIN, MODE_CRONOTERMOSTATO, PRESET_COMFORT, ZONE_MODES
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,13 +54,7 @@ class CronotermostatoZoneModeSelect(RestoreEntity, SelectEntity):
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}_select_zone_mode"
         self._attr_options = ZONE_MODES
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=f"Cronotermostato {manager.zone_name}",
-            manufacturer="evlas",
-            model="Cronotermostato Multizona",
-            sw_version="1.0.0",
-        )
+        self._attr_device_info = manager.device_info
 
     @property
     def current_option(self) -> str:
@@ -74,13 +67,13 @@ class CronotermostatoZoneModeSelect(RestoreEntity, SelectEntity):
             await self.manager.async_set_mode(option)
 
     async def async_added_to_hass(self) -> None:
-        """Ripristina lo stato memorizzato all'avvio."""
+        """Ripristina lo stato memorizzato all'avvio senza anticipare l'invio comandi prima del setup."""
         await super().async_added_to_hass()
         self.async_on_remove(self.manager.async_add_listener(self.async_write_ha_state))
 
         last_state = await self.async_get_last_state()
-        if last_state and last_state.state in self._attr_options:
-            await self.manager.async_set_mode(last_state.state)
+        if last_state and (last_state.state in self._attr_options or last_state.state == "scene_knx"):
+            self.manager.set_restored_mode(last_state.state)
 
 
 class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
@@ -102,13 +95,7 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
         self._attr_unique_id = f"{entry.entry_id}_select_preset_{slot_index}"
         self._attr_icon = "mdi:tune-vertical"
         self._attr_options = DEFAULT_PRESET_OPTIONS
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=f"Cronotermostato {manager.zone_name}",
-            manufacturer="evlas",
-            model="Cronotermostato Multizona",
-            sw_version="1.0.0",
-        )
+        self._attr_device_info = manager.device_info
 
     @property
     def options(self) -> list[str]:
@@ -126,10 +113,12 @@ class CronotermostatoSlotPresetEntity(RestoreEntity, SelectEntity):
         return self.options[0] if self.options else PRESET_COMFORT
 
     async def async_select_option(self, option: str) -> None:
-        """Imposta una nuova modalità per la fascia."""
+        """Imposta una nuova modalità per la fascia e la applica se la fascia è quella corrente."""
         slot = self.manager.slots.get(self.slot_index)
         if slot and option in self.options:
             slot.preset = option.lower()
+            if self.manager.mode == MODE_CRONOTERMOSTATO and self.manager.crono_enabled:
+                await self.manager._async_apply_current_slot()
             self.manager._notify_listeners()
             self.async_write_ha_state()
 

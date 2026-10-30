@@ -8,11 +8,10 @@ import logging
 from homeassistant.components.time import TimeEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, MODE_CRONOTERMOSTATO
 from .coordinator import CronotermostatoZoneManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,13 +51,7 @@ class CronotermostatoSlotTimeEntity(RestoreEntity, TimeEntity):
         self._attr_translation_key = f"slot_time_{slot_index}"
         self._attr_unique_id = f"{entry.entry_id}_time_slot_{slot_index}"
         self._attr_icon = "mdi:clock-outline"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=f"Cronotermostato {manager.zone_name}",
-            manufacturer="evlas",
-            model="Cronotermostato Multizona",
-            sw_version="1.0.0",
-        )
+        self._attr_device_info = manager.device_info
 
     @property
     def native_value(self) -> time:
@@ -69,10 +62,12 @@ class CronotermostatoSlotTimeEntity(RestoreEntity, TimeEntity):
         return time(0, 0)
 
     async def async_set_value(self, value: time) -> None:
-        """Modifica l'orario della fascia."""
+        """Modifica l'orario della fascia e ricalcola la fascia attiva."""
         slot = self.manager.slots.get(self.slot_index)
         if slot:
             slot.time = value
+            if self.manager.mode == MODE_CRONOTERMOSTATO and self.manager.crono_enabled:
+                await self.manager._async_apply_current_slot()
             self.manager._notify_listeners()
             self.async_write_ha_state()
 
